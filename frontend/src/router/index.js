@@ -12,6 +12,10 @@ const routes = [
     path: '/profile',
     name: 'Profile',
     component: ProfileView
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/'
   }
 ]
 
