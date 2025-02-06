@@ -6,7 +6,7 @@
 
 </template>
 
-<script setup>
+<script>
 export default {
   name: "App",
   // Здесь можно добавить глобальные переменные или методы
