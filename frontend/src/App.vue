@@ -99,11 +99,13 @@ onMounted(() => {
 
 /* Глобальные стили для App.vue (при необходимости) */
 @import './assets/css/adaptive.css';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 
 html {
   touch-action: none; /* Отключаем жесты масштабирования на мобильных */
   -ms-touch-action: none;
   overflow: hidden;
+  font-family: 'Roboto', sans-serif;
 }
 
 body {
@@ -115,8 +117,6 @@ body {
   height: 100%;
   background-color: var(--tg-theme-bg-color);
   color: var(--tg-theme-text-color);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 #app {
