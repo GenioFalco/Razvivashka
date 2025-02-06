@@ -115,6 +115,7 @@ html, body {
   width: 100%;
   height: 100%;
   overscroll-behavior: none;
+  background-color: var(--tg-theme-bg-color);
 }
 
 #app {
@@ -122,28 +123,29 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: white;
-  min-height: 100vh;
-  height: 100vh;
-  max-height: 100vh;
+  height: 100%;
   touch-action: none;
   -ms-touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   position: fixed;
   width: 100%;
   left: 0;
   top: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .app {
   width: 100vw;
-  height: 100vh;
+  min-height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   position: fixed;
 }
 

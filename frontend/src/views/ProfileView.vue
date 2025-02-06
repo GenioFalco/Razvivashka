@@ -174,8 +174,7 @@
   /* Основной контейнер */
   .profile {
     background: linear-gradient(180deg, #4a90e2, #003f7f);
-    min-height: 100vh;
-    height: 100vh;
+    min-height: 100%;
     color: white;
     padding: 0;
     display: flex;
@@ -183,11 +182,13 @@
     width: 100vw;
     max-width: 100vw;
     position: relative;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     margin: 0;
     left: 0;
     right: 0;
     z-index: 1;
+    -webkit-overflow-scrolling: touch;
   }
   
   /* Стили для верхней панели */

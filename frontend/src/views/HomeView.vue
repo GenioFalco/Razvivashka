@@ -145,11 +145,13 @@
     align-items: center;
     background: linear-gradient(180deg, #4a90e2, #003f7f);
     padding: 20px;
-    min-height: 100vh;
+    min-height: 100%;
     width: 100%;
     box-sizing: border-box;
     margin: 0;
     color: white;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     font-family: 'Arial', sans-serif;
   }
   
@@ -238,6 +240,7 @@
     flex-direction: column;
     gap: 15px;
     width: 100%;
+    padding-bottom: 80px; /* Добавляем отступ снизу для последнего элемента */
   }
   
   .category-item {
