@@ -161,6 +161,7 @@
   }
   
   .profile-card {
+    font-family: 'Ubuntu', sans-serif;
     width: 120px;
     height: 180px;
     display: flex;
@@ -176,6 +177,11 @@
     transition: all 0.2s ease;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+  }
+  
+  .profile-card span {
+    font-family: 'Ubuntu', sans-serif;
+    font-weight: 500;
   }
   
   .menu-grid {

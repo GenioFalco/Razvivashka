@@ -217,9 +217,10 @@
     border-radius: 50%;
   }
   
-  .username {
-    font-weight: bold;
-    font-size: 1.2rem;
+  .user-info .username {
+    font-family: 'Ubuntu', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1rem, 2.5vh, 1.4rem);
   }
   
   /* Стили для кнопки настроек */
