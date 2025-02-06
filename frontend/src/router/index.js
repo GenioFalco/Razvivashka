@@ -15,13 +15,19 @@ const routes = [
   },
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/'
+    name: 'NotFound',
+    component: HomeView
   }
 ]
 
 const router = createRouter({
   history: createWebHistory('/MiniAppRazvivashka/'),
   routes,
+})
+
+router.beforeEach((to, from, next) => {
+  console.log('Navigating to:', to.path)
+  next()
 })
 
 export default router 

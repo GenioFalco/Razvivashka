@@ -8,5 +8,7 @@ app.use(router)
 
 // Дождёмся, когда router будет готов
 router.isReady().then(() => {
+  // Принудительно перенаправляем на домашнюю страницу
+  router.push('/')
   app.mount('#app')
 }) 
