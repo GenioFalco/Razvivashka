@@ -135,15 +135,7 @@
       }
     }
   }
-  
-  // Функция для воспроизведения звука
-  const playClickSound = () => {
-    const audio = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU')
-    audio.volume = 0.2 // Тихий звук
-    audio.play().catch(() => {
-      // Игнорируем ошибку, если браузер блокирует автовоспроизведение
-    })
-  }
+
   </script>
   
   <style scoped>

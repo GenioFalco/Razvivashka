@@ -1,20 +1,51 @@
 <template>
-  <div class="app" :class="{ 'dark': isDarkTheme }">
-    <RouterView v-if="isInitialized" />
-    <div v-else class="loading">Загрузка...</div>
+  <div id="app">
+    <!-- Место для отображения дочерних компонентов -->
+    <router-view />
   </div>
+
 </template>
 
-<script>
+<script setup>
+export default {
+  name: "App",
+  // Здесь можно добавить глобальные переменные или методы
+};
 
-import { ref, computed,} from 'vue'
-import { RouterView} from 'vue-router'
+import { ref, onMounted, computed, watch } from 'vue'
+import { RouterView, useRoute, useRouter } from 'vue-router'
 
+const route = useRoute()
+const router = useRouter()
 const isInitialized = ref(false)
 const isDarkTheme = computed(() => {
   console.log('Checking theme:', window.Telegram?.WebApp?.colorScheme)
   return window.Telegram?.WebApp?.colorScheme === 'dark'
 })
+
+onMounted(() => {
+  console.log('App mounted')
+  
+  // Эмулируем объект Telegram WebApp для тестирования в браузере
+  if (!window.Telegram) {
+    window.Telegram = {
+      WebApp: {
+        ready: () => console.log('WebApp ready called'),
+        expand: () => console.log('WebApp expand called'),
+        MainButton: {
+          show: () => console.log('MainButton show called'),
+          hide: () => console.log('MainButton hide called')
+        },
+        colorScheme: 'dark',
+        backgroundColor: '#1f1f1f',
+        textColor: '#ffffff',
+        linkColor: '#64b5f6',
+        buttonColor: '#64b5f6',
+        buttonTextColor: '#ffffff'
+      }
+    }
+  }
+
   // Проверяем, запущено ли приложение в Telegram
   if (window.Telegram?.WebApp) {
     console.log('Telegram WebApp found, initializing...')
@@ -61,7 +92,7 @@ const isDarkTheme = computed(() => {
     // Если запущено не в Telegram, просто показываем контент
     isInitialized.value = true
   }
-
+})
 </script>
 
 <style scoped>
