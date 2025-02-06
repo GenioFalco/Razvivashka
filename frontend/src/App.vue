@@ -11,10 +11,8 @@
 
 <script>
 import { ref, onMounted, computed, watch } from 'vue'
-import { RouterView, useRoute, useRouter } from 'vue-router'
+import { RouterView } from 'vue-router'
 
-const route = useRoute()
-const router = useRouter()
 const isInitialized = ref(false)
 const isDarkTheme = computed(() => {
   console.log('Checking theme:', window.Telegram?.WebApp?.colorScheme)
