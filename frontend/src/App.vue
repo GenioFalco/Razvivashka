@@ -1,15 +1,67 @@
 <template>
-  <div id="app">
-    <!-- Место для отображения дочерних компонентов -->
-    <router-view />
+  <div class="app" :class="{ 'dark': isDarkTheme }">
+    <RouterView v-if="isInitialized" />
+    <div v-else class="loading">Загрузка...</div>
   </div>
 </template>
 
 <script>
-export default {
-  name: "App",
-  // Здесь можно добавить глобальные переменные или методы
-};
+
+import { ref, computed,} from 'vue'
+import { RouterView} from 'vue-router'
+
+const isInitialized = ref(false)
+const isDarkTheme = computed(() => {
+  console.log('Checking theme:', window.Telegram?.WebApp?.colorScheme)
+  return window.Telegram?.WebApp?.colorScheme === 'dark'
+})
+  // Проверяем, запущено ли приложение в Telegram
+  if (window.Telegram?.WebApp) {
+    console.log('Telegram WebApp found, initializing...')
+    try {
+      // Инициализируем Telegram WebApp
+      window.Telegram.WebApp.ready()
+      window.Telegram.WebApp.expand()
+      
+      // Настраиваем MainButton
+      window.Telegram.WebApp.MainButton.hide()
+      
+      // Получаем тему
+      const colorScheme = window.Telegram.WebApp.colorScheme
+      console.log('Color scheme:', colorScheme)
+      document.documentElement.className = colorScheme
+      
+      // Устанавливаем цвета из Telegram WebApp
+      const colors = {
+        backgroundColor: window.Telegram.WebApp.backgroundColor,
+        textColor: window.Telegram.WebApp.textColor,
+        linkColor: window.Telegram.WebApp.linkColor,
+        buttonColor: window.Telegram.WebApp.buttonColor,
+        buttonTextColor: window.Telegram.WebApp.buttonTextColor
+      }
+      console.log('Colors:', colors)
+      
+      document.documentElement.style.setProperty('--tg-theme-bg-color', colors.backgroundColor)
+      document.documentElement.style.setProperty('--tg-theme-text-color', colors.textColor)
+      document.documentElement.style.setProperty('--tg-theme-hint-color', colors.backgroundColor)
+      document.documentElement.style.setProperty('--tg-theme-link-color', colors.linkColor)
+      document.documentElement.style.setProperty('--tg-theme-button-color', colors.buttonColor)
+      document.documentElement.style.setProperty('--tg-theme-button-text-color', colors.buttonTextColor)
+      
+      console.log('WebApp initialized successfully')
+    } catch (error) {
+      console.error('Error initializing WebApp:', error)
+    }
+    
+    // Помечаем, что инициализация завершена
+    isInitialized.value = true
+    console.log('Initialization complete')
+  } else {
+    console.log('Not running in Telegram WebApp, showing content directly')
+    // Если запущено не в Telegram, просто показываем контент
+    isInitialized.value = true
+  }
+
 </script>
 
 <style scoped>
