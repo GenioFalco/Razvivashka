@@ -138,6 +138,7 @@ import SettingsPanel from '@/components/SettingsPanel.vue'
 import UpgradePanel from '@/components/UpgradePanel.vue'
 import LevelRewardPanel from '@/components/LevelRewardPanel.vue'
 import profileImage from '@/assets/profile.png';
+import { API_URL } from '@/config';
 
 // Состояние для уровня и опыта
 const router = useRouter();
@@ -275,7 +276,7 @@ async function updateNickname(newNickname) {
     const guestId = localStorage.getItem('guestId');
     if (!guestId) return;
     
-    const response = await axios.put(`http://localhost:3000/api/profile/${guestId}/username`, {
+    const response = await axios.put(`${API_URL}/profile/${guestId}/username`, {
       username: newNickname
     });
     
@@ -292,7 +293,7 @@ async function loadTokens() {
     const guestId = localStorage.getItem('guestId');
     if (!guestId) return;
     
-    const response = await axios.get(`http://localhost:3000/api/profile/${guestId}`);
+    const response = await axios.get(`${API_URL}/profile/${guestId}`);
     const { user } = response.data;
     
     tokens.value = {
@@ -312,7 +313,7 @@ async function loadTokens() {
 // Функция для загрузки требований уровней
 async function loadLevelRequirements() {
   try {
-    const response = await axios.get('http://localhost:3000/api/levels');
+    const response = await axios.get(`${API_URL}/levels`);
     const levels = response.data;
     nextLevelRequirements.value = levels.reduce((acc, level) => {
       acc[level.level] = level.exp_required;
@@ -335,7 +336,7 @@ async function loadProfile() {
       localStorage.setItem('guestId', guestId);
     }
     
-    const response = await axios.get(`http://localhost:3000/api/profile/${guestId}`);
+    const response = await axios.get(`${API_URL}/profile/${guestId}`);
     const { user, character } = response.data;
     
     nickname.value = user.username;
@@ -381,7 +382,7 @@ async function addTestXP() {
       return;
     }
 
-    const response = await fetch(`http://localhost:3000/api/profile/${guestId}/xp`, {
+    const response = await fetch(`${API_URL}/profile/${guestId}/xp`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

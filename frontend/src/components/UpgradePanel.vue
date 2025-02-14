@@ -50,6 +50,7 @@ import dailyAdmissionIcon from '@/assets/daily_admission.png';
 import rebusIcon from '@/assets/rebus.png';
   import articulationIcon from '@/assets/articulation.png';
 import dailyIcon from '@/assets/daily.png';
+import { API_URL } from '@/config';
   
   const props = defineProps({
     isVisible: {
@@ -86,7 +87,7 @@ const guestId = localStorage.getItem('guestId');
 
 const upgradeParameter = async (parameter) => {
   try {
-    const response = await fetch(`http://localhost:3000/api/profile/${guestId}/character/${props.character.id}/upgrade`, {
+    const response = await fetch(`${API_URL}/profile/${guestId}/character/${props.character.id}/upgrade`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -108,7 +109,7 @@ const upgradeParameter = async (parameter) => {
 
 const levelUp = async () => {
   try {
-    const response = await fetch(`http://localhost:3000/api/profile/${guestId}/character/${props.character.id}/level-up`, {
+    const response = await fetch(`${API_URL}/profile/${guestId}/character/${props.character.id}/level-up`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

@@ -78,6 +78,7 @@
   import { ref, onMounted, watch } from 'vue';
   import axios from 'axios';
   import profileImage from '@/assets/profile.png';
+  import { API_URL } from '@/config';
   
   const props = defineProps({
     isVisible: {
@@ -99,7 +100,7 @@
   const loading = ref(false);
   
   // Загрузка доступных персонажей
-  async function loadCharacters() {
+  const loadCharacters = async () => {
     try {
       loading.value = true;
       error.value = null;
@@ -111,13 +112,13 @@
         return;
       }
 
-      const response = await axios.get(`http://localhost:3000/api/profile/${guestId}/characters`);
+      const response = await axios.get(`${API_URL}/profile/${guestId}/characters`);
       console.log('Characters response:', response.data);
       
       // Преобразуем ответ, создавая прямые URL для изображений
       availableCharacters.value = response.data.characters.map(char => ({
         ...char,
-        image_url: `http://localhost:3000/api/profile/character/${char.id}/image`
+        image_url: `${API_URL}/profile/character/${char.id}/image`
       }));
       
       // Устанавливаем текущего активного персонажа
@@ -163,7 +164,7 @@
       const guestId = localStorage.getItem('guestId');
       if (!guestId) return;
 
-      await axios.put(`http://localhost:3000/api/profile/${guestId}/character`, {
+      await axios.put(`${API_URL}/profile/${guestId}/character`, {
         characterId: char.id
       });
 

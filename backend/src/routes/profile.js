@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { get, run, all } = require('../db/database');
 
+// Конфигурация для URL
+const BASE_URL = process.env.BASE_URL || 'https://your-domain.com';
+
 // Получение профиля пользователя
 router.get('/:guestId', async (req, res) => {
     try {
@@ -87,7 +90,7 @@ router.get('/:guestId', async (req, res) => {
                 },
                 character: defaultCharacter ? {
                     ...defaultCharacter,
-                    image_url: `http://localhost:3000/api/profile/character/${defaultCharacter.id}/image`
+                    image_url: `${BASE_URL}/api/profile/character/${defaultCharacter.id}/image`
                 } : null
             });
         }
@@ -117,7 +120,7 @@ router.get('/:guestId', async (req, res) => {
 
         const characterData = activeCharacter ? {
             ...activeCharacter,
-            image_url: `http://localhost:3000/api/profile/character/${activeCharacter.id}/image`
+            image_url: `${BASE_URL}/api/profile/character/${activeCharacter.id}/image`
         } : null;
 
         res.json({
