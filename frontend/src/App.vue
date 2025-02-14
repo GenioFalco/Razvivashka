@@ -1,34 +1,54 @@
 <template>
   <div id="app">
+    <div v-if="logs.length" class="debug-logs">
+      <div v-for="(log, index) in logs" :key="index" class="log-item">
+        {{ log }}
+      </div>
+    </div>
     <router-view />
   </div>
 </template>
 
 <script>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 
 export default {
   setup() {
     const router = useRouter();
     const historyStack = ref([]); // История маршрутов
+    const logs = ref([]); // Массив для хранения логов
+
+    // Функция для добавления логов
+    const addLog = (message) => {
+      logs.value.push(`${new Date().toLocaleTimeString()}: ${message}`);
+      if (logs.value.length > 10) logs.value.shift(); // Храним только последние 10 логов
+    };
 
     onMounted(() => {
+      addLog("App mounted, checking for Telegram WebApp...");
+      addLog("window.Telegram: " + (window.Telegram ? "Available" : "Not available"));
+      
       if (!window.Telegram || !window.Telegram.WebApp) {
-        console.warn("Telegram WebApp is not available");
+        addLog("Telegram WebApp is not available");
         return;
       }
 
       const WebApp = window.Telegram.WebApp;
-      const BackButton = WebApp.BackButton;
-
+      addLog("WebApp object initialized");
+      
       // Инициализация WebApp
       WebApp.ready();
       WebApp.expand();
 
+      // Инициализация кнопки "Назад"
+      const BackButton = WebApp.BackButton;
+      addLog("BackButton object initialized");
+
       // Следим за изменением маршрута
       router.afterEach((to, from) => {
-        console.log("Route changed:", { to, from });
+        addLog(`Route changed from ${from.path} to ${to.path}`);
+        addLog(`History stack: ${JSON.stringify(historyStack.value)}`);
 
         if (from.path && from.path !== to.path) {
           historyStack.value.push(from.path);
@@ -36,31 +56,45 @@ export default {
 
         if (to.path === "/") {
           historyStack.value = [];
-          BackButton.hide(); // На главной скрываем кнопку
+          addLog("Hiding back button on home page");
+          BackButton.hide();
         } else {
-          BackButton.show(); // Показываем кнопку на других страницах
+          addLog(`Showing back button on page: ${to.path}`);
+          BackButton.show();
         }
       });
 
       // Обработчик нажатия на кнопку "Назад"
       BackButton.onClick(() => {
+        addLog("Back button clicked");
+        addLog(`Current history stack: ${JSON.stringify(historyStack.value)}`);
+        
         if (historyStack.value.length > 0) {
           const previousPath = historyStack.value.pop();
+          addLog(`Navigating to previous path: ${previousPath}`);
           router.push(previousPath);
         } else {
+          addLog("No history, returning to home");
           router.push("/");
         }
       });
 
-      // Проверяем начальный маршрут и скрываем кнопку на главной
-      if (router.currentRoute.value.path === "/") {
+      // Проверяем начальный маршрут
+      const currentPath = router.currentRoute.value.path;
+      addLog(`Initial route: ${currentPath}`);
+      
+      if (currentPath === "/") {
+        addLog("Initial route is home, hiding back button");
         BackButton.hide();
       } else {
+        addLog("Initial route is not home, showing back button");
         BackButton.show();
       }
     });
 
-    return {};
+    return {
+      logs
+    };
   },
 };
 </script>
@@ -137,5 +171,25 @@ html, body {
   --tg-theme-link-color: #64b5f6;
   --tg-theme-button-color: #64b5f6;
   --tg-theme-secondary-bg-color: #2f2f2f;
+}
+
+.debug-logs {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 12px;
+  z-index: 9999;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.log-item {
+  margin: 5px 0;
+  text-align: left;
+  font-family: monospace;
 }
 </style> 

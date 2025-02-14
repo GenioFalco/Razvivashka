@@ -617,7 +617,6 @@ header {
   z-index: 20;
   margin-bottom: -5%;
   pointer-events: none;
-  background: rgba(255, 255, 255, 0.05);
   border-radius: 1rem;
   padding: 1rem;
 }
