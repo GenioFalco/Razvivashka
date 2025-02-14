@@ -5,17 +5,15 @@
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 
 export default {
   setup() {
     const router = useRouter();
-    const historyStack = ref([]); // Храним историю маршрутов
+    const historyStack = ref([]); // История маршрутов
 
     onMounted(() => {
-      console.log("App mounted, checking for Telegram WebApp...");
-
       if (!window.Telegram || !window.Telegram.WebApp) {
         console.warn("Telegram WebApp is not available");
         return;
@@ -28,7 +26,7 @@ export default {
       WebApp.ready();
       WebApp.expand();
 
-      // Обработчик смены маршрута
+      // Следим за изменением маршрута
       router.afterEach((to, from) => {
         console.log("Route changed:", { to, from });
 
@@ -38,13 +36,13 @@ export default {
 
         if (to.path === "/") {
           historyStack.value = [];
-          BackButton.hide(); // Скрываем кнопку "Назад" на главной
+          BackButton.hide(); // На главной скрываем кнопку
         } else {
-          BackButton.show(); // Показываем на всех остальных страницах
+          BackButton.show(); // Показываем кнопку на других страницах
         }
       });
 
-      // Обработчик кнопки "Назад"
+      // Обработчик нажатия на кнопку "Назад"
       BackButton.onClick(() => {
         if (historyStack.value.length > 0) {
           const previousPath = historyStack.value.pop();
@@ -54,7 +52,7 @@ export default {
         }
       });
 
-      // Устанавливаем начальное состояние кнопки "Назад"
+      // Проверяем начальный маршрут и скрываем кнопку на главной
       if (router.currentRoute.value.path === "/") {
         BackButton.hide();
       } else {
@@ -66,6 +64,7 @@ export default {
   },
 };
 </script>
+
 
 <style>
 @import './assets/css/adaptive.css';
