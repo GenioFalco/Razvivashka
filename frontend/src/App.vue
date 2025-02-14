@@ -20,8 +20,7 @@ export default {
       if (typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp) {
         console.log("Telegram WebApp found, initializing...");
         const WebApp = window.Telegram.WebApp;
-        const BackButton = WebApp.BackButton;
-
+        
         // Инициализация WebApp
         WebApp.ready();
         WebApp.expand();
@@ -33,11 +32,13 @@ export default {
           
           if (path === '/') {
             console.log('Hiding back button on main page');
-            BackButton.hide();
+            WebApp.BackButton.hide();
             historyStack.value = [];
           } else {
             console.log('Showing back button');
-            BackButton.show();
+            // Правильная инициализация кнопки "Назад" согласно документации
+            WebApp.BackButton.show();
+            WebApp.MainButton.hide();
           }
         };
 
@@ -52,8 +53,8 @@ export default {
           updateBackButton(to.path);
         });
 
-        // Обработчик кнопки "Назад"
-        BackButton.onClick(() => {
+        // Обработчик события нажатия кнопки "Назад"
+        WebApp.onEvent('backButtonClicked', () => {
           console.log("Back button clicked");
           if (historyStack.value.length > 0) {
             const previousPath = historyStack.value.pop();
