@@ -5,31 +5,60 @@
 </template>
 
 <script>
-import { onMounted } from 'vue'
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 
 export default {
   setup() {
+    const router = useRouter();
+    const historyStack = ref([]); // Храним историю маршрутов
+
     onMounted(() => {
       console.log("App mounted, checking for Telegram WebApp...");
 
-      // Проверяем наличие объекта Telegram
-      if (typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp) {
-        console.log("Telegram WebApp found, initializing...");
-        const WebApp = window.Telegram.WebApp;
-        const BackButton = WebApp.BackButton;
-        
-        // Инициализация WebApp
-        WebApp.ready();
-        WebApp.expand();
-
-        // Инициализация кнопки "Назад"
-        BackButton.show();
-        BackButton.onClick(function() {
-          WebApp.showAlert("Нет пути назад!");
-          BackButton.hide();
-        });
-      } else {
+      if (!window.Telegram || !window.Telegram.WebApp) {
         console.warn("Telegram WebApp is not available");
+        return;
+      }
+
+      const WebApp = window.Telegram.WebApp;
+      const BackButton = WebApp.BackButton;
+
+      // Инициализация WebApp
+      WebApp.ready();
+      WebApp.expand();
+
+      // Обработчик смены маршрута
+      router.afterEach((to, from) => {
+        console.log("Route changed:", { to, from });
+
+        if (from.path && from.path !== to.path) {
+          historyStack.value.push(from.path);
+        }
+
+        if (to.path === "/") {
+          historyStack.value = [];
+          BackButton.hide(); // Скрываем кнопку "Назад" на главной
+        } else {
+          BackButton.show(); // Показываем на всех остальных страницах
+        }
+      });
+
+      // Обработчик кнопки "Назад"
+      BackButton.onClick(() => {
+        if (historyStack.value.length > 0) {
+          const previousPath = historyStack.value.pop();
+          router.push(previousPath);
+        } else {
+          router.push("/");
+        }
+      });
+
+      // Устанавливаем начальное состояние кнопки "Назад"
+      if (router.currentRoute.value.path === "/") {
+        BackButton.hide();
+      } else {
+        BackButton.show();
       }
     });
 
