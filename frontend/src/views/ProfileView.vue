@@ -446,20 +446,20 @@ onMounted(async () => {
     loadLevelRequirements()
   ]);
   
-  if (window.Telegram && window.Telegram.WebApp) {
-    const WebApp = window.Telegram.WebApp;
-    WebApp.ready();
-    WebApp.expand();
-    
-    const BackButton = WebApp.BackButton;
-    BackButton.show();
-    BackButton.onClick(() => {
-      router.push({ name: 'Home' });
-    });
-    WebApp.onEvent('backButtonClicked', () => {
-      router.push({ name: 'Home' });
-    });
+  // Проверяем доступность Telegram WebApp
+  if (!window.Telegram) {
+    console.warn('Telegram WebApp is not available in ProfileView');
+    return;
   }
+
+  const WebApp = window.Telegram.WebApp;
+  
+  // Инициализация кнопки назад
+  const BackButton = WebApp.BackButton;
+  BackButton.show();
+  BackButton.onClick(() => {
+    router.push({ name: 'Home' });
+  });
 });
 
 </script>

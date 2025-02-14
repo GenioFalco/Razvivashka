@@ -20,9 +20,17 @@ export default {
     onMounted(() => {
       console.log('App mounted')
       
-      // Получаем WebApp из window.Telegram
-      const WebApp = window.Telegram?.WebApp
-      if (!WebApp) return
+      // Проверяем доступность Telegram WebApp
+      if (!window.Telegram) {
+        console.warn('Telegram WebApp is not available')
+        return
+      }
+
+      const WebApp = window.Telegram.WebApp
+
+      // Инициализация WebApp
+      WebApp.ready()
+      WebApp.expand()
 
       // Инициализация кнопки назад
       const BackButton = WebApp.BackButton
