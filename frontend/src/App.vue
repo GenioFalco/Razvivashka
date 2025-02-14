@@ -5,24 +5,81 @@
 </template>
 
 <script>
-    const backButton = Telegram.WebApp.BackButton;
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
-    // Показывать кнопку только если есть GET параметры 
-// Показывать кнопку только если есть параметры 
-// и страница не главная
-if (window.location.search && window.location.pathname !== '/') {
+export default {
+  setup() {
+    const router = useRouter();
+    const historyStack = ref([]);
 
-  backButton.show();
+    onMounted(() => {
+      console.log("App mounted, checking for Telegram WebApp...");
 
-} else {
+      // Проверяем наличие объекта Telegram
+      if (typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp) {
+        console.log("Telegram WebApp found, initializing...");
+        const WebApp = window.Telegram.WebApp;
+        const BackButton = WebApp.BackButton;
+        
+        // Инициализация WebApp
+        WebApp.ready();
+        WebApp.expand();
 
-  backButton.hide(); 
+        // Инициализация кнопки "Назад"
+        BackButton.show();
+        BackButton.onClick(() => {
+          WebApp.showAlert("Нет пути назад!");
+          BackButton.hide();
+        });
 
-}
-backButton.onClick(() => {
-      history.back();
+        WebApp.onEvent('backButtonClicked', () => {
+          console.log("Back button clicked");
+          if (historyStack.value.length > 0) {
+            const previousPath = historyStack.value.pop();
+            router.push(previousPath);
+          } else {
+            router.push('/');
+          }
+        });
+
+        // Функция для управления видимостью кнопки
+        const updateBackButton = (path) => {
+          console.log('Current path:', path);
+          console.log('History stack:', historyStack.value);
+          
+          if (path === '/') {
+            console.log('Hiding back button on main page');
+            BackButton.hide();
+            historyStack.value = [];
+          } else {
+            console.log('Showing back button');
+            BackButton.show();
+            console.log('Back button should be visible now.');
+          }
+        };
+
+        // Обработчик смены маршрута
+        router.afterEach((to, from) => {
+          console.log("Route changed from", from.path, "to", to.path);
+          
+          if (from.path && from.path !== to.path) {
+            historyStack.value.push(from.path);
+          }
+          
+          updateBackButton(to.path);
+        });
+
+        // Устанавливаем начальное состояние кнопки
+        updateBackButton(router.currentRoute.value.path);
+      } else {
+        console.warn("Telegram WebApp is not available");
+      }
     });
 
+    return {};
+  },
+};
 </script>
 
 <style>
