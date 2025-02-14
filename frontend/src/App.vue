@@ -5,14 +5,10 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted } from 'vue'
 
 export default {
   setup() {
-    const router = useRouter();
-    const historyStack = ref([]);
-
     onMounted(() => {
       console.log("App mounted, checking for Telegram WebApp...");
 
@@ -29,28 +25,8 @@ export default {
         // Инициализация кнопки "Назад"
         BackButton.show();
         BackButton.onClick(function() {
-          console.log("Back button clicked");
-          if (historyStack.value.length > 0) {
-            const previousPath = historyStack.value.pop();
-            router.push(previousPath);
-          } else {
-            router.push('/');
-          }
-        });
-
-        // Устанавливаем начальное состояние кнопки
-        if (router.currentRoute.value.path === '/') {
+          WebApp.showAlert("Нет пути назад!");
           BackButton.hide();
-        }
-
-        // Обработчик смены маршрута
-        router.afterEach((to, from) => {
-          console.log("Route changed from", from.path, "to", to.path);
-          if (to.path === '/') {
-            BackButton.hide();
-          } else {
-            BackButton.show();
-          }
         });
       } else {
         console.warn("Telegram WebApp is not available");
