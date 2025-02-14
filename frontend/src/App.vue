@@ -44,7 +44,7 @@ export default {
         // Если пользователь на главной странице, скрываем кнопку "Назад"
         if (to.path === "/") {
           historyStack.value = [];
-          BackButton.hide();
+        
         } else {
           BackButton.show();
         }
