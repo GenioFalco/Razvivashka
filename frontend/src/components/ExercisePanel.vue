@@ -11,7 +11,6 @@
           :src="exercise.videoUrl" 
           controls 
           class="exercise-video"
-          poster="@/assets/video-placeholder.png"
         ></video>
       </div>
 

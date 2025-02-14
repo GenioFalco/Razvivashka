@@ -11,7 +11,6 @@
           :src="masterClass.videoUrl" 
           controls 
           class="class-video"
-          poster="@/assets/video-placeholder.png"
         ></video>
       </div>
 
