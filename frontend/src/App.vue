@@ -5,37 +5,77 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue'
-import { RouterView } from 'vue-router'
+import { ref, onMounted, computed, watch } from 'vue'
+import { RouterView, useRouter } from 'vue-router'
 
 const isDarkTheme = computed(() => {
   console.log('Checking theme:', window.Telegram?.WebApp?.colorScheme)
   return window.Telegram?.WebApp?.colorScheme === 'dark'
 })
 
-onMounted(() => {
-  console.log('App mounted')
-  
-  // Эмулируем объект Telegram WebApp для тестирования в браузере
-  if (!window.Telegram) {
-    window.Telegram = {
-      WebApp: {
-        ready: () => console.log('WebApp ready called'),
-        expand: () => console.log('WebApp expand called'),
-        MainButton: {
-          show: () => console.log('MainButton show called'),
-          hide: () => console.log('MainButton hide called')
-        },
-        colorScheme: 'dark',
-        backgroundColor: '#1f1f1f',
-        textColor: '#ffffff',
-        linkColor: '#64b5f6',
-        buttonColor: '#64b5f6',
-        buttonTextColor: '#ffffff'
+export default {
+  setup() {
+    const router = useRouter()
+    
+    onMounted(() => {
+      console.log('App mounted')
+      
+      // Эмулируем объект Telegram WebApp для тестирования в браузере
+      if (!window.Telegram) {
+        window.Telegram = {
+          WebApp: {
+            ready: () => console.log('WebApp ready called'),
+            expand: () => console.log('WebApp expand called'),
+            BackButton: {
+              show: () => console.log('BackButton show called'),
+              hide: () => console.log('BackButton hide called'),
+              onClick: (callback) => {
+                console.log('BackButton onClick registered')
+                window.history.back()
+              }
+            },
+            MainButton: {
+              show: () => console.log('MainButton show called'),
+              hide: () => console.log('MainButton hide called')
+            },
+            colorScheme: 'dark',
+            backgroundColor: '#1f1f1f',
+            textColor: '#ffffff',
+            linkColor: '#64b5f6',
+            buttonColor: '#64b5f6',
+            buttonTextColor: '#ffffff'
+          }
+        }
       }
-    }
+
+      // Инициализация кнопки назад
+      const BackButton = window.Telegram.WebApp.BackButton
+
+      // Следим за изменениями маршрута
+      router.afterEach((to, from) => {
+        if (to.path === '/') {
+          BackButton.hide()
+        } else {
+          BackButton.show()
+        }
+      })
+
+      // Обработчик нажатия кнопки назад
+      BackButton.onClick(() => {
+        router.back()
+      })
+
+      // Показываем/скрываем кнопку в зависимости от текущего маршрута
+      if (router.currentRoute.value.path === '/') {
+        BackButton.hide()
+      } else {
+        BackButton.show()
+      }
+    })
+
+    return {}
   }
-})
+}
 </script>
 
 <style>
