@@ -36,9 +36,7 @@ export default {
             historyStack.value = [];
           } else {
             console.log('Showing back button');
-            // Правильная инициализация кнопки "Назад" согласно документации
             WebApp.BackButton.show();
-            WebApp.MainButton.hide();
           }
         };
 
