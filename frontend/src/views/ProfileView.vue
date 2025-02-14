@@ -440,6 +440,15 @@ function collectRewards() {
   levelRewards.value = null;
 }
 
+var BackButton = WebApp.BackButton;
+BackButton.show();
+BackButton.onClick(function() {
+  WebApp.showAlert("Нет пути назад!");
+  BackButton.hide();
+});
+WebApp.onEvent('backButtonClicked', function() { /* код */ });
+
+
 onMounted(async () => {
   await Promise.all([
     loadProfile(),
@@ -457,6 +466,7 @@ onMounted(async () => {
     });
   }
 });
+
 </script>
 
 <style scoped>
