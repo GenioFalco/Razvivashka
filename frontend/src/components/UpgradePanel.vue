@@ -1,335 +1,336 @@
 <template>
-    <Transition name="slide-up">
-      <div v-if="isVisible" class="upgrade-panel">
-        <div class="upgrade-header">
-          <h2>Прокачка персонажа</h2>
-          <button class="close-button" @click="$emit('close')">
-            <span>&times;</span>
-          </button>
-        </div>
-        
-        <div class="upgrade-content">
-          <!-- Превью персонажа -->
-          <div class="character-preview">
-            <img :src="characterImage" alt="Character" />
-          </div>
-  
-          <!-- Параметры персонажа -->
+  <div v-if="isVisible" class="upgrade-panel-overlay">
+    <div class="panel-content">
+      <button class="close-button" @click="$emit('close')">✕</button>
+      <h2 class="panel-title">{{ character?.name || 'Персона' }}</h2>
+      <div class="character-level">Уровень {{ character?.level || 0 }}</div>
+
           <div class="parameters-list">
-            <div v-for="param in parameters" :key="param.id" class="parameter-item">
+        <div v-for="param in parameters" :key="param.name" class="parameter-item">
+          <div class="parameter-info">
               <div class="parameter-header">
-                <span class="parameter-name">{{ param.name }}</span>
-                <span class="parameter-level">Ур. {{ param.level }}</span>
+              <span class="parameter-label">{{ param.label }}</span>
+              <span class="parameter-value">{{ character?.[`${param.name}_level`] || 0 }} / {{ maxParameterValue }}</span>
               </div>
-              
-              <div class="parameter-progress">
                 <div class="progress-bar">
-                  <div class="progress-fill" :style="{ width: (param.progress / param.maxProgress) * 100 + '%' }"></div>
-                  <span class="progress-text">{{ param.progress }}/{{ param.maxProgress }}</span>
-                </div>
-                <button class="exchange-token-button" @click="exchangeToken(param.id)">
-                  <img :src="param.tokenIcon" alt="Token" class="token-icon" />
-                  <span>+1</span>
-                </button>
-              </div>
+              <div 
+                class="progress-fill"
+                :style="{ width: getProgressWidth(param.name) }"
+              ></div>
             </div>
           </div>
-  
-          <!-- Кнопка повышения уровня -->
           <button 
-            class="level-up-button"
-            :disabled="!canLevelUp"
-            @click="levelUp"
+            @click="upgradeParameter(param.name)"
+            :disabled="!canUpgradeParameter(param.name) || !hasToken(param.token)"
+            class="upgrade-button"
           >
-            ПОВЫСИТЬ УРОВЕНЬ
+            <img :src="getTokenIcon(param.token)" alt="Token" class="token-icon" />
+            <span>+1</span>
           </button>
         </div>
       </div>
-    </Transition>
+
+      <button 
+        @click="levelUp"
+        :disabled="!canLevelUp"
+        class="level-up-button"
+      >
+        Повысить уровень
+      </button>
+    </div>
+  </div>
   </template>
   
   <script setup>
   import { ref, computed } from 'vue';
-  import profileIcon from '@/assets/profile.png';
   import creativityIcon from '@/assets/creativity.png';
-  import dailyIcon from '@/assets/daily.png';
+import neuroIcon from '@/assets/neuro.png';
   import riddlesIcon from '@/assets/riddles.png';
-  import neuroIcon from '@/assets/neuro.png';
+import dailyAdmissionIcon from '@/assets/daily_admission.png';
+import rebusIcon from '@/assets/rebus.png';
   import articulationIcon from '@/assets/articulation.png';
-  import tongueTwistersIcon from '@/assets/tonguetwisters.png';
-  import rebusIcon from '@/assets/rebus.png';
+import dailyIcon from '@/assets/daily.png';
   
   const props = defineProps({
     isVisible: {
       type: Boolean,
+    default: false
+  },
+  character: {
+    type: Object,
+    required: true
+  },
+  tokens: {
+    type: Object,
       required: true
     },
-    characterImage: {
-      type: String,
-      default: profileIcon
+  maxParameterValue: {
+    type: Number,
+    required: true
+  }
+});
+
+const emit = defineEmits(['close', 'upgrade']);
+
+const parameters = [
+  { name: 'creativity', label: 'Креативность', token: 'creativity' },
+  { name: 'intelligence', label: 'Интеллект', token: 'riddles' },
+  { name: 'wit', label: 'Остроумие', token: 'rebus' },
+  { name: 'energy', label: 'Энергичность', token: 'neuro' },
+  { name: 'focus', label: 'Фокусировка', token: 'tongueTwister' },
+  { name: 'articulation', label: 'Артикуляция', token: 'articulation' },
+  { name: 'activity', label: 'Активность', token: 'daily' }
+];
+
+const guestId = localStorage.getItem('guestId');
+
+const upgradeParameter = async (parameter) => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/profile/${guestId}/character/${props.character.id}/upgrade`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ parameter })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error);
     }
+
+    const data = await response.json();
+    emit('upgrade', data);
+  } catch (error) {
+    console.error('Error upgrading parameter:', error);
+  }
+};
+
+const levelUp = async () => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/profile/${guestId}/character/${props.character.id}/level-up`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error);
+    }
+
+    const data = await response.json();
+    emit('upgrade', data);
+  } catch (error) {
+    console.error('Error leveling up character:', error);
+  }
+};
+
+const canUpgradeParameter = (paramName) => {
+  const currentLevel = props.character?.[`${paramName}_level`] || 0;
+  return currentLevel < props.maxParameterValue;
+};
+
+const canLevelUp = computed(() => {
+  if (!props.character) return false;
+  
+  // Проверяем, что все параметры достигли максимального уровня
+  const allParametersMaxed = parameters.every(param => {
+    const paramLevel = props.character[`${param.name}_level`] || 0;
+    return paramLevel >= props.maxParameterValue;
   });
   
-  defineEmits(['close', 'upgrade']);
-  
-  const parameters = ref([
-    { 
-      id: 1, 
-      name: 'Креативность', 
-      level: 1, 
-      progress: 2, 
-      maxProgress: 5,
-      tokenIcon: creativityIcon 
-    },
-    { 
-      id: 2, 
-      name: 'Интеллект', 
-      level: 1, 
-      progress: 3, 
-      maxProgress: 5,
-      tokenIcon: riddlesIcon 
-    },
-    { 
-      id: 3, 
-      name: 'Остроумие', 
-      level: 1, 
-      progress: 1, 
-      maxProgress: 5,
-      tokenIcon: rebusIcon 
-    },
-    { 
-      id: 4, 
-      name: 'Энергичность', 
-      level: 1, 
-      progress: 4, 
-      maxProgress: 5,
-      tokenIcon: dailyIcon 
-    },
-    { 
-      id: 5, 
-      name: 'Фокусировка', 
-      level: 1, 
-      progress: 0, 
-      maxProgress: 5,
-      tokenIcon: neuroIcon 
-    },
-    { 
-      id: 6, 
-      name: 'Артикуляция', 
-      level: 1, 
-      progress: 2, 
-      maxProgress: 5,
-      tokenIcon: articulationIcon 
-    },
-    { 
-      id: 7, 
-      name: 'Активность', 
-      level: 1, 
-      progress: 3, 
-      maxProgress: 5,
-      tokenIcon: tongueTwistersIcon 
-    }
-  ]);
-  
-  const canLevelUp = computed(() => {
-    return parameters.value.every(param => param.progress === param.maxProgress);
-  });
-  
-  function exchangeToken(parameterId) {
-    const parameter = parameters.value.find(p => p.id === parameterId);
-    if (parameter && parameter.progress < parameter.maxProgress) {
-      parameter.progress++;
-    }
-  }
-  
-  function levelUp() {
-    if (canLevelUp.value) {
-      // Здесь будет логика повышения уровня
-      alert('Функция повышения уровня будет доступна позже');
-    }
-  }
+  // Проверяем, что уровень персонажа меньше 10
+  const characterLevel = props.character.level || 0;
+  return allParametersMaxed && characterLevel < 10;
+});
+
+const hasToken = (tokenName) => {
+  return props.tokens?.[tokenName] > 0;
+};
+
+const getTokenIcon = (tokenName) => {
+  const icons = {
+    creativity: creativityIcon,
+    riddles: neuroIcon,
+    rebus: rebusIcon,
+    neuro: dailyAdmissionIcon,
+    tongueTwister: neuroIcon,
+    articulation: articulationIcon,
+    daily: dailyIcon
+  };
+  return icons[tokenName];
+};
+
+const getProgressWidth = (paramName) => {
+  const currentLevel = props.character?.[`${paramName}_level`] || 0;
+  return `${(currentLevel / props.maxParameterValue) * 100}%`;
+};
+
+const maxParameterValue = computed(() => {
+  if (!props.character) return 5;
+  return props.character.max_parameter_value || 5;
+});
   </script>
   
   <style scoped>
-  .upgrade-panel {
+.upgrade-panel-overlay {
     position: fixed;
-    bottom: 0;
+  top: 0;
     left: 0;
     right: 0;
-    height: 85vh;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 1000;
+}
+
+.panel-content {
+  position: relative;
     background: #4C7C94;
+  width: 100%;
+  height: 90vh;
+  padding: 20px;
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
-    padding: 1.5rem;
-    color: white;
-    z-index: 1000;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
-  }
-  
-  .upgrade-header {
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease-out;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-  }
-  
-  .upgrade-header h2 {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin: 0;
+  flex-direction: column;
   }
   
   .close-button {
+  position: absolute;
+  top: 15px;
+  right: 15px;
     background: none;
     border: none;
-    color: white;
-    font-size: 1.5rem;
-    padding: 0.5rem;
+  color: #fff;
+  font-size: 18px;
     cursor: pointer;
-  }
-  
-  .upgrade-content {
+  padding: 0;
+  width: 24px;
+  height: 24px;
     display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    height: calc(100% - 4rem);
-    overflow-y: auto;
-    padding-bottom: 2rem;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  
-  .upgrade-content::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .character-preview {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 1rem;
-  }
-  
-  .character-preview img {
-    width: 120px;
-    height: 120px;
-    object-fit: contain;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-title {
+  font-size: 24px;
+  color: white;
+  margin: 20px 0 10px;
+  text-align: center;
+}
+
+.character-level {
+  font-size: 18px;
+  color: white;
+  text-align: center;
+  margin-bottom: 20px;
   }
   
   .parameters-list {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+  gap: 15px;
+  padding: 0 10px;
+  margin-bottom: 20px;
+  flex: 1;
+  overflow-y: auto;
   }
   
   .parameter-item {
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 1rem;
-    padding: 1rem;
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.parameter-info {
+  flex: 1;
+  margin-right: 15px;
   }
   
   .parameter-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-  }
-  
-  .parameter-name {
-    font-weight: 500;
-  }
-  
-  .parameter-level {
-    font-size: 0.9rem;
-    opacity: 0.8;
-  }
-  
-  .parameter-progress {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
+  margin-bottom: 8px;
+}
+
+.parameter-label {
+  color: white;
+  font-size: 16px;
+}
+
+.parameter-value {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
   }
   
   .progress-bar {
-    flex: 1;
-    height: 0.75rem;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 1rem;
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
     overflow: hidden;
-    position: relative;
   }
   
   .progress-fill {
     height: 100%;
     background: #3b82f6;
-    border-radius: 1rem;
     transition: width 0.3s ease;
   }
   
-  .progress-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 0.8rem;
-    color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  }
-  
-  .exchange-token-button {
+.upgrade-button {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    background: #3b82f6;
+  gap: 4px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
     border: none;
-    border-radius: 0.5rem;
-    padding: 0.5rem 1rem;
-    color: white;
-    font-weight: bold;
+  border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.2s;
   }
   
-  .exchange-token-button:hover {
-    background: #2563eb;
+.upgrade-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
   }
   
   .token-icon {
-    width: 1.2rem;
-    height: 1.2rem;
+  width: 20px;
+  height: 20px;
+}
+
+.token-cost {
+  color: white;
+  font-size: 14px;
   }
   
   .level-up-button {
+  width: 90%;
+  margin: 0 auto 20px;
+  padding: 15px;
     background: #3b82f6;
     color: white;
     border: none;
-    padding: 1rem;
-    border-radius: 1rem;
-    font-weight: bold;
-    font-size: 1.1rem;
+  border-radius: 10px;
+  font-size: 18px;
     cursor: pointer;
-    transition: all 0.2s;
-    margin-top: auto;
   }
   
   .level-up-button:disabled {
-    background: rgba(59, 130, 246, 0.5);
+  background: rgba(255, 255, 255, 0.2);
     cursor: not-allowed;
   }
   
-  .level-up-button:not(:disabled):hover {
-    background: #2563eb;
-    transform: translateY(-1px);
-  }
-  
-  /* Анимация появления снизу */
-  .slide-up-enter-active,
-  .slide-up-leave-active {
-    transition: transform 0.3s ease-out;
-  }
-  
-  .slide-up-enter-from,
-  .slide-up-leave-to {
-    transform: translateY(100%);
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
   }
   </style> 

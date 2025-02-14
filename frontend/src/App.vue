@@ -1,19 +1,13 @@
 <template>
   <div id="app">
-    <div v-if="isInitialized">
-      <router-view />
-    </div>
-    <div v-else class="loading">
-      Loading...
-    </div>
+    <router-view />
   </div>
 </template>
 
 <script>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { RouterView } from 'vue-router'
 
-const isInitialized = ref(false)
 const isDarkTheme = computed(() => {
   console.log('Checking theme:', window.Telegram?.WebApp?.colorScheme)
   return window.Telegram?.WebApp?.colorScheme === 'dark'
@@ -41,15 +35,10 @@ onMounted(() => {
       }
     }
   }
-
-  // Принудительно перенаправляем на домашнюю страницу
-  router.push('/').then(() => {
-    isInitialized.value = true
-  })
 })
 </script>
 
-<style scoped>
+<style>
 @import './assets/css/adaptive.css';
 @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap');
 
@@ -62,12 +51,8 @@ onMounted(() => {
 }
 
 html, body {
-  touch-action: none;
-  -ms-touch-action: none;
-  overflow: hidden !important;
-  position: fixed;
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
   overscroll-behavior: none;
   background-color: var(--tg-theme-bg-color);
 }
@@ -77,30 +62,25 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: white;
-  height: 100%;
-  touch-action: none;
-  -ms-touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  overflow-x: hidden;
-  overflow-y: auto;
-  position: fixed;
   width: 100%;
-  left: 0;
-  top: 0;
-  -webkit-overflow-scrolling: touch;
+  min-height: 100vh;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  background: var(--tg-theme-bg-color);
 }
 
-.app {
-  width: 100vw;
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  position: fixed;
+/* Адаптивные стили для мобильных устройств */
+@media screen and (max-width: 390px) {
+  #app {
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .router-view-container {
+    width: 100%;
+    min-height: 100vh;
+  }
 }
 
 :root {
@@ -130,5 +110,4 @@ html, body {
   --tg-theme-button-color: #64b5f6;
   --tg-theme-secondary-bg-color: #2f2f2f;
 }
-
 </style> 

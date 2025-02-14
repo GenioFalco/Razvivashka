@@ -9,11 +9,32 @@
         </div>
         
         <div class="settings-content">
+          <!-- Сообщение об ошибке -->
+          <div v-if="error" class="error-message">
+            {{ error }}
+          </div>
+
+          <!-- Индикатор загрузки -->
+          <div v-if="loading" class="loading-indicator">
+            Загрузка...
+          </div>
+
           <div class="setting-group">
             <label>Никнейм</label>
             <div class="nickname-input">
-              <input type="text" v-model="nickname" placeholder="Введите никнейм" />
-              <button class="save-button" @click="saveNickname">Сохранить</button>
+              <input 
+                type="text" 
+                v-model="nickname" 
+                placeholder="Введите никнейм"
+                :disabled="loading"
+              />
+              <button 
+                class="save-button" 
+                @click="saveNickname"
+                :disabled="loading"
+              >
+                Сохранить
+              </button>
             </div>
           </div>
   
@@ -21,18 +42,30 @@
             <label>Персонаж</label>
             <div class="character-selection">
               <div class="character-preview">
-                <img :src="currentCharacter" alt="Current character" />
+                <img 
+                  :src="currentCharacter || profileImage" 
+                  alt="Current character" 
+                  @error="handleImageError"
+                  class="character-image"
+                />
               </div>
-              <div class="character-list">
+              <div class="character-list" v-if="availableCharacters.length > 0">
                 <div 
-                  v-for="(char, index) in availableCharacters" 
-                  :key="index"
+                  v-for="char in availableCharacters" 
+                  :key="char.id"
                   class="character-option"
-                  :class="{ 'selected': char === currentCharacter }"
+                  :class="{ 'selected': char.image_url === currentCharacter }"
                   @click="selectCharacter(char)"
                 >
-                  <img :src="char" alt="Character option" />
+                  <img 
+                    :src="char.image_url" 
+                    :alt="char.name"
+                    @error="handleImageError"
+                  />
                 </div>
+              </div>
+              <div v-else class="no-characters">
+                Нет доступных персонажей
               </div>
             </div>
           </div>
@@ -42,33 +75,125 @@
   </template>
   
   <script setup>
-  import { ref } from 'vue';
-  import profileIcon from '@/assets/profile.png';
+  import { ref, onMounted, watch } from 'vue';
+  import axios from 'axios';
+  import profileImage from '@/assets/profile.png';
   
   const props = defineProps({
     isVisible: {
       type: Boolean,
       required: true
+    },
+    currentNickname: {
+      type: String,
+      required: true
     }
   });
   
-  defineEmits(['close', 'update:nickname', 'update:character']);
+  const emit = defineEmits(['close', 'update:nickname', 'update:character']);
   
-  const nickname = ref('ТИМА#564');
-  const currentCharacter = ref(profileIcon);
-  const availableCharacters = ref([
-    profileIcon, // Текущий персонаж
-    // Здесь будут добавляться новые персонажи из магазина
-  ]);
+  const nickname = ref(props.currentNickname);
+  const currentCharacter = ref('');
+  const availableCharacters = ref([]);
+  const error = ref(null);
+  const loading = ref(false);
   
-  function saveNickname() {
-    // Здесь будет логика сохранения никнейма
+  // Загрузка доступных персонажей
+  async function loadCharacters() {
+    try {
+      loading.value = true;
+      error.value = null;
+      const guestId = localStorage.getItem('guestId');
+      console.log('Loading characters for guestId:', guestId);
+
+      if (!guestId) {
+        error.value = 'GuestId не найден';
+        return;
+      }
+
+      const response = await axios.get(`http://localhost:3000/api/profile/${guestId}/characters`);
+      console.log('Characters response:', response.data);
+      
+      // Преобразуем ответ, создавая прямые URL для изображений
+      availableCharacters.value = response.data.characters.map(char => ({
+        ...char,
+        image_url: `http://localhost:3000/api/profile/character/${char.id}/image`
+      }));
+      
+      // Устанавливаем текущего активного персонажа
+      const activeChar = availableCharacters.value.find(char => char.is_active);
+      console.log('Active character:', activeChar);
+      
+      if (activeChar) {
+        currentCharacter.value = activeChar.image_url;
+        emit('update:character', activeChar.image_url);
+      } else {
+        console.log('No active character found');
+      }
+    } catch (err) {
+      console.error('Error loading characters:', err);
+      error.value = 'Ошибка при загрузке персонажей: ' + err.message;
+    } finally {
+      loading.value = false;
+    }
   }
   
-  function selectCharacter(char) {
-    currentCharacter.value = char;
-    // Здесь будет логика сохранения выбранного персонажа
+  // Сохранение никнейма
+  async function saveNickname() {
+    try {
+      if (!nickname.value || nickname.value.trim().length < 2) {
+        error.value = 'Никнейм должен содержать минимум 2 символа';
+        return;
+      }
+
+      loading.value = true;
+      emit('update:nickname', nickname.value);
+    } catch (err) {
+      console.error('Error saving nickname:', err);
+      error.value = 'Ошибка при сохранении никнейма';
+    } finally {
+      loading.value = false;
+    }
   }
+  
+  // Выбор персонажа
+  async function selectCharacter(char) {
+    try {
+      loading.value = true;
+      const guestId = localStorage.getItem('guestId');
+      if (!guestId) return;
+
+      await axios.put(`http://localhost:3000/api/profile/${guestId}/character`, {
+        characterId: char.id
+      });
+
+      currentCharacter.value = char.image_url;
+      emit('update:character', char.image_url);
+    } catch (err) {
+      console.error('Error selecting character:', err);
+      error.value = 'Ошибка при выборе персонажа';
+    } finally {
+      loading.value = false;
+    }
+  }
+  
+  onMounted(() => {
+    if (props.isVisible) {
+      loadCharacters();
+    }
+  });
+  
+  // Следим за изменением видимости панели
+  watch(() => props.isVisible, (newValue) => {
+    if (newValue) {
+      loadCharacters();
+    }
+  });
+
+  const handleImageError = (event) => {
+    console.log('Image loading error, using default profile image');
+    event.target.src = profileImage;
+  };
   </script>
   
   <style scoped>
@@ -189,46 +314,49 @@
   }
   
   .character-preview {
+    min-height: 200px;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 1rem;
+    margin-bottom: 1rem;
   }
   
-  .character-preview img {
-    width: 120px;
-    height: 120px;
+  .character-preview .character-image {
+    width: 180px;
+    height: 180px;
     object-fit: contain;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    display: block;
   }
   
   .character-list {
     display: flex;
     gap: 1rem;
-    overflow-x: auto;
-    padding: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   
   .character-option {
-    width: 80px;
-    height: 80px;
-    padding: 0.5rem;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 0.5rem;
-    background: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem;
     cursor: pointer;
-    transition: all 0.2s;
-  }
-  
-  .character-option.selected {
-    background: rgba(59, 130, 246, 0.5);
-    box-shadow: 0 0 0 2px #3b82f6;
+    transition: all 0.2s ease;
   }
   
   .character-option img {
     width: 100%;
     height: 100%;
     object-fit: contain;
+  }
+  
+  .character-option.selected {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
   }
   
   /* Анимация появления снизу */
@@ -251,5 +379,52 @@
     .setting-group {
       scroll-snap-align: start;
     }
+  }
+  
+  .error-message {
+    background: rgba(255, 0, 0, 0.1);
+    color: #fff;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  .loading-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    z-index: 1000;
+  }
+  
+  .save-button:disabled,
+  input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .no-character {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .no-characters {
+    text-align: center;
+    padding: 1rem;
+    color: rgba(255, 255, 255, 0.7);
   }
   </style> 

@@ -5,7 +5,7 @@
         <!-- Профиль слева -->
         <router-link to="/profile" class="profile-card clickable">
           <img src="@/assets/profile.png" alt="Профиль" class="menu-icon" />
-          <span>Профиль</span>
+          <span class="profile-text">Профиль</span>
         </router-link>
         
         <!-- Сетка 2x2 справа -->
@@ -109,15 +109,37 @@
         // Обработка разных типов кнопок
         switch(category) {
           case 'profile':
-            router.push({ name: 'profile' })
+            router.push({ name: 'Profile' })
+            break;
+          case 'shop':
+            router.push({ name: 'shop' })
             break;
           case 'photoalbum':
             router.push({ name: 'photoalbum' })
             break;
           case 'subscription':
-          case 'shop':
-            // Для верхних кнопок меню
-            router.push({ name: 'tasks', query: { category } })
+            router.push({ name: 'subscription' })
+            break;
+          case 'daily':
+            router.push({ name: 'daily' });
+            break;
+          case 'riddles':
+            router.push({ name: 'riddles' });
+            break;
+          case 'tonguetwisters':
+            router.push({ name: 'tonguetwister' });
+            break;
+          case 'rebus':
+            router.push({ name: 'rebus' });
+            break;
+          case 'neuro':
+            router.push({ name: 'neuro' });
+            break;
+          case 'articulation':
+            router.push({ name: 'articulation' });
+            break;
+          case 'creativity':
+            router.push({ name: 'creativity' });
             break;
           default:
             // Для категорий внизу
@@ -127,7 +149,7 @@
     } catch (error) {
       console.error('Error in handleClick:', error)
       if (category === 'profile') {
-        router.push({ name: 'profile' })
+        router.push({ name: 'Profile' })
       } else if (category === 'photoalbum') {
         router.push({ name: 'photoalbum' })
       } else {
@@ -142,11 +164,11 @@
   .main-menu {
     display: flex;
     flex-direction: column;
+    gap: 50px;
     align-items: center;
     background: linear-gradient(180deg, #4a90e2, #003f7f);
     padding: 20px;
-    min-height: 100%;
-    width: 100%;
+    min-height: 100vh;
     box-sizing: border-box;
     margin: 0;
     color: white;
@@ -157,9 +179,12 @@
   
   .top-menu {
     display: flex;
-    gap: 15px;
-    margin-bottom: 30px;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: nowrap;
+    margin-bottom: 0;
     width: 100%;
+    box-sizing: border-box;
   }
   
   .profile-card {
@@ -179,18 +204,23 @@
     transition: all 0.2s ease;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    flex-shrink: 0;
   }
   
   .profile-card span {
     font-family: 'Ubuntu', sans-serif;
     font-weight: 500;
+    color: white;
+    text-decoration: none;
   }
   
   .menu-grid {
-    flex: 1;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 15px;
+    flex-grow: 1;
+    box-sizing: border-box;
+    min-width: 0;
   }
   
   .menu-card {
@@ -240,7 +270,9 @@
     flex-direction: column;
     gap: 15px;
     width: 100%;
-    padding-bottom: 80px; /* Добавляем отступ снизу для последнего элемента */
+    padding-bottom: 80px; /* Отступ снизу для последнего элемента */
+    box-sizing: border-box;
+    margin-top: 50px !important;
   }
   
   .category-item {
@@ -297,6 +329,71 @@
     .press-down {
       animation: none;
     }
+  }
+  
+  /* Добавляем стили для мобильных устройств */
+  @media screen and (max-width: 600px) {
+    .main-menu {
+      padding: 10px;
+    }
+  
+    .top-menu {
+      flex-direction: row;
+      gap: 15px;
+      flex-wrap: nowrap;
+      padding: 0 15px;
+    }
+  
+    .menu-grid {
+      gap: 15px;
+    }
+  
+    .categories {
+      width: 100%;
+      padding: 0 10px;
+    }
+  }
+  
+  /* Добавляем явное определение flex для корректного позиционирования элементов в .top-menu */
+  .top-menu .profile-card {
+    flex: 0 0 120px; /* Фиксированная ширина для профиля */
+  }
+  
+  .top-menu .menu-grid {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100% !important;
+  }
+  
+  /* Добавляем правило transform-origin для интерактивных элементов */
+  .profile-card,
+  .menu-card,
+  .category-item {
+    transform-origin: center;
+  }
+  
+  /* Media query для больших экранов */
+  @media screen and (min-width: 1024px) {
+    .main-menu {
+      width: 100%;
+      margin: 0;
+    }
+    .top-menu {
+      gap: 15px;
+    }
+    .menu-grid {
+      gap: 15px;
+    }
+  }
+  
+  /* Переопределяем стиль контейнеров внутри главного меню для полного растягивания */
+  .main-menu .container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
   }
   </style>
   
