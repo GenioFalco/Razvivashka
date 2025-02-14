@@ -445,16 +445,6 @@ onMounted(async () => {
     loadProfile(),
     loadLevelRequirements()
   ]);
-  
-  // Проверяем доступность Telegram WebApp
-  if (!window.Telegram) {
-    console.warn('Telegram WebApp is not available in ProfileView');
-    return;
-  }
-
-  const WebApp = window.Telegram.WebApp;
-  WebApp.ready();
-  WebApp.expand();
 });
 
 </script>

@@ -28,13 +28,11 @@ export default {
       }
 
       const WebApp = window.Telegram.WebApp
+      const BackButton = WebApp.BackButton
 
       // Инициализация WebApp
       WebApp.ready()
       WebApp.expand()
-
-      // Инициализация кнопки назад
-      const BackButton = WebApp.BackButton
 
       // Следим за изменениями маршрута
       router.afterEach((to, from) => {
@@ -44,26 +42,17 @@ export default {
           historyStack.value.push(from.path)
         }
 
+        // Показываем кнопку "Назад" на всех страницах, кроме главной
         if (to.path === '/') {
           historyStack.value = []
           BackButton.hide()
-        } else if (historyStack.value.length > 0) {
+        } else {
           BackButton.show()
         }
       })
 
       // Обработчик нажатия кнопки назад
       BackButton.onClick(() => {
-        if (historyStack.value.length > 0) {
-          const previousPath = historyStack.value.pop()
-          router.push(previousPath)
-        } else {
-          router.push('/')
-        }
-      })
-
-      // Обработчик события backButtonClicked
-      WebApp.onEvent('backButtonClicked', () => {
         if (historyStack.value.length > 0) {
           const previousPath = historyStack.value.pop()
           router.push(previousPath)
