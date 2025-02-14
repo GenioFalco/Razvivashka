@@ -37,6 +37,7 @@ export default {
           } else {
             console.log('Showing back button');
             WebApp.BackButton.show();
+            console.log('Back button should be visible now.');
           }
         };
 
