@@ -29,11 +29,6 @@ export default {
         // Инициализация кнопки "Назад"
         BackButton.show();
         BackButton.onClick(function() {
-          WebApp.showAlert("BackButton clicked");
-          BackButton.hide();
-        });
-
-        WebApp.onEvent('backButtonClicked', function() {
           console.log("Back button clicked");
           if (historyStack.value.length > 0) {
             const previousPath = historyStack.value.pop();
@@ -43,35 +38,20 @@ export default {
           }
         });
 
-        // Функция для управления видимостью кнопки
-        const updateBackButton = (path) => {
-          console.log('Current path:', path);
-          console.log('History stack:', historyStack.value);
-          
-          if (path === '/') {
-            console.log('Hiding back button on main page');
-            BackButton.hide();
-            historyStack.value = [];
-          } else {
-            console.log('Showing back button');
-            BackButton.show();
-            console.log('Back button should be visible now.');
-          }
-        };
+        // Устанавливаем начальное состояние кнопки
+        if (router.currentRoute.value.path === '/') {
+          BackButton.hide();
+        }
 
         // Обработчик смены маршрута
         router.afterEach((to, from) => {
           console.log("Route changed from", from.path, "to", to.path);
-          
-          if (from.path && from.path !== to.path) {
-            historyStack.value.push(from.path);
+          if (to.path === '/') {
+            BackButton.hide();
+          } else {
+            BackButton.show();
           }
-          
-          updateBackButton(to.path);
         });
-
-        // Устанавливаем начальное состояние кнопки
-        updateBackButton(router.currentRoute.value.path);
       } else {
         console.warn("Telegram WebApp is not available");
       }
