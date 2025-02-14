@@ -28,12 +28,12 @@ export default {
 
         // Инициализация кнопки "Назад"
         BackButton.show();
-        BackButton.onClick(() => {
-          WebApp.showAlert("Нет пути назад!");
+        BackButton.onClick(function() {
+          WebApp.showAlert("BackButton clicked");
           BackButton.hide();
         });
 
-        WebApp.onEvent('backButtonClicked', () => {
+        WebApp.onEvent('backButtonClicked', function() {
           console.log("Back button clicked");
           if (historyStack.value.length > 0) {
             const previousPath = historyStack.value.pop();
