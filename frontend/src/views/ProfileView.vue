@@ -449,23 +449,7 @@ BackButton.onClick(function() {
 WebApp.onEvent('backButtonClicked', function() { /* код */ });
 
 
-onMounted(async () => {
-  await Promise.all([
-    loadProfile(),
-    loadLevelRequirements()
-  ]);
-  
-  if (window.Telegram && window.Telegram.WebApp) {
-    const BackButton = window.Telegram.WebApp.BackButton;
-    BackButton.show();
-    BackButton.onClick(() => {
-      router.push({ name: 'home' });
-    });
-    window.Telegram.WebApp.onEvent('backButtonClicked', () => {
-      router.push({ name: 'home' });
-    });
-  }
-});
+
 
 </script>
 
