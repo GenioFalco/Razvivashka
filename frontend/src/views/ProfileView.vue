@@ -453,13 +453,8 @@ onMounted(async () => {
   }
 
   const WebApp = window.Telegram.WebApp;
-  
-  // Инициализация кнопки назад
-  const BackButton = WebApp.BackButton;
-  BackButton.show();
-  BackButton.onClick(() => {
-    router.push({ name: 'Home' });
-  });
+  WebApp.ready();
+  WebApp.expand();
 });
 
 </script>

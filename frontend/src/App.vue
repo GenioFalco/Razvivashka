@@ -16,6 +16,7 @@ const isDarkTheme = computed(() => {
 export default {
   setup() {
     const router = useRouter()
+    const historyStack = ref([])
     
     onMounted(() => {
       console.log('App mounted')
@@ -37,24 +38,41 @@ export default {
 
       // Следим за изменениями маршрута
       router.afterEach((to, from) => {
+        console.log('Route changed:', { to, from })
+        
+        if (from.path) {
+          historyStack.value.push(from.path)
+        }
+
         if (to.path === '/') {
+          historyStack.value = []
           BackButton.hide()
-        } else {
+        } else if (historyStack.value.length > 0) {
           BackButton.show()
         }
       })
 
       // Обработчик нажатия кнопки назад
       BackButton.onClick(() => {
-        router.back()
+        if (historyStack.value.length > 0) {
+          const previousPath = historyStack.value.pop()
+          router.push(previousPath)
+        } else {
+          router.push('/')
+        }
       })
 
       // Обработчик события backButtonClicked
       WebApp.onEvent('backButtonClicked', () => {
-        router.back()
+        if (historyStack.value.length > 0) {
+          const previousPath = historyStack.value.pop()
+          router.push(previousPath)
+        } else {
+          router.push('/')
+        }
       })
 
-      // Показываем/скрываем кнопку в зависимости от текущего маршрута
+      // Инициализация начального состояния кнопки
       if (router.currentRoute.value.path === '/') {
         BackButton.hide()
       } else {
