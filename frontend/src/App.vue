@@ -33,21 +33,30 @@ export default {
       WebApp.ready();
       WebApp.expand();
 
+      // Функция для управления видимостью кнопки
+      const updateBackButton = (path) => {
+        console.log('Updating back button for path:', path);
+        if (path === '/') {
+          console.log('Hiding back button');
+          BackButton.hide();
+          historyStack.value = [];
+        } else {
+          console.log('Showing back button');
+          BackButton.show();
+        }
+        console.log('Current history stack:', historyStack.value);
+      };
+
       // Обработчик смены маршрута
       router.afterEach((to, from) => {
         console.log("Route changed:", { to, from });
-
+        
+        // Сохраняем предыдущий путь только если он отличается от текущего
         if (from.path && from.path !== to.path) {
           historyStack.value.push(from.path);
         }
-
-        // Если пользователь на главной странице, скрываем кнопку "Назад"
-        if (to.path === "/") {
-          historyStack.value = [];
         
-        } else {
-          BackButton.show();
-        }
+        updateBackButton(to.path);
       });
 
       // Обработчик кнопки "Назад"
@@ -56,16 +65,12 @@ export default {
           const previousPath = historyStack.value.pop();
           router.push(previousPath);
         } else {
-          router.push("/");
+          router.push('/');
         }
       });
 
-      // Начальное состояние кнопки
-      if (router.currentRoute.value.path === "/") {
-        BackButton.hide();
-      } else {
-        BackButton.show();
-      }
+      // Устанавливаем начальное состояние кнопки
+      updateBackButton(router.currentRoute.value.path);
     });
 
     return {};
