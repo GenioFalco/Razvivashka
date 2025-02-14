@@ -440,16 +440,27 @@ function collectRewards() {
   levelRewards.value = null;
 }
 
-var BackButton = WebApp.BackButton;
-BackButton.show();
-BackButton.onClick(function() {
-  WebApp.showAlert("Нет пути назад!");
-  BackButton.hide();
+onMounted(async () => {
+  await Promise.all([
+    loadProfile(),
+    loadLevelRequirements()
+  ]);
+  
+  if (window.Telegram && window.Telegram.WebApp) {
+    const WebApp = window.Telegram.WebApp;
+    WebApp.ready();
+    WebApp.expand();
+    
+    const BackButton = WebApp.BackButton;
+    BackButton.show();
+    BackButton.onClick(() => {
+      router.push({ name: 'Home' });
+    });
+    WebApp.onEvent('backButtonClicked', () => {
+      router.push({ name: 'Home' });
+    });
+  }
 });
-WebApp.onEvent('backButtonClicked', function() { /* код */ });
-
-
-
 
 </script>
 
