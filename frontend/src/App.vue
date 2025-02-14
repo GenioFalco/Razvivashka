@@ -15,63 +15,62 @@ const isDarkTheme = computed(() => {
 
 export default {
   setup() {
-    const router = useRouter()
-    const historyStack = ref([])
-    
+    const router = useRouter();
+    const historyStack = ref([]);
+
     onMounted(() => {
-      console.log('App mounted')
-      
-      // Проверяем доступность Telegram WebApp
-      if (!window.Telegram) {
-        console.warn('Telegram WebApp is not available')
-        return
+      console.log("App mounted");
+
+      if (!window.Telegram || !window.Telegram.WebApp) {
+        console.warn("Telegram WebApp is not available");
+        return;
       }
 
-      const WebApp = window.Telegram.WebApp
-      const BackButton = WebApp.BackButton
+      const WebApp = window.Telegram.WebApp;
+      const BackButton = WebApp.BackButton;
 
       // Инициализация WebApp
-      WebApp.ready()
-      WebApp.expand()
+      WebApp.ready();
+      WebApp.expand();
 
-      // Следим за изменениями маршрута
+      // Обработчик смены маршрута
       router.afterEach((to, from) => {
-        console.log('Route changed:', { to, from })
-        
-        if (from.path) {
-          historyStack.value.push(from.path)
+        console.log("Route changed:", { to, from });
+
+        if (from.path && from.path !== to.path) {
+          historyStack.value.push(from.path);
         }
 
-        // Показываем кнопку "Назад" на всех страницах, кроме главной
-        if (to.path === '/') {
-          historyStack.value = []
-          BackButton.hide()
+        // Если пользователь на главной странице, скрываем кнопку "Назад"
+        if (to.path === "/") {
+          historyStack.value = [];
+          BackButton.hide();
         } else {
-          BackButton.show()
+          BackButton.show();
         }
-      })
+      });
 
-      // Обработчик нажатия кнопки назад
+      // Обработчик кнопки "Назад"
       BackButton.onClick(() => {
         if (historyStack.value.length > 0) {
-          const previousPath = historyStack.value.pop()
-          router.push(previousPath)
+          const previousPath = historyStack.value.pop();
+          router.push(previousPath);
         } else {
-          router.push('/')
+          router.push("/");
         }
-      })
+      });
 
-      // Инициализация начального состояния кнопки
-      if (router.currentRoute.value.path === '/') {
-        BackButton.hide()
+      // Начальное состояние кнопки
+      if (router.currentRoute.value.path === "/") {
+        BackButton.hide();
       } else {
-        BackButton.show()
+        BackButton.show();
       }
-    })
+    });
 
-    return {}
-  }
-}
+    return {};
+  },
+};
 </script>
 
 <style>
