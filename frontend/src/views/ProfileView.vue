@@ -223,12 +223,7 @@ const setActiveButton = (index) => {
   activeButtonIndex.value = index;
   const token = actions.value[index].token;
   selectedToken.value = token;
-  isTokenPopupVisible.value = true;
-
-  // Скрываем попап через 2 секунды
-  setTimeout(() => {
-    isTokenPopupVisible.value = false;
-  }, 2000);
+  
 };
 
 // Функция обмена (пока не реализована)
