@@ -77,16 +77,6 @@
           <img :src="action.icon" :alt="action.name" />
         </button>
       </div>
-      
-      <!-- Попап с количеством жетонов -->
-      <div v-if="isTokenPopupVisible && selectedToken" 
-           class="token-popup"
-           @click="handleTokenPopupClick">
-        <div class="token-content">
-          <img :src="actionIcons[selectedToken]" :alt="selectedToken" />
-          <span>{{ tokens[selectedToken] }}</span>
-        </div>
-      </div>
     </div>
 
     <!-- Компонент настроек -->
@@ -179,7 +169,6 @@ const actions = ref([
 // Состояние для активной кнопки и попапа
 const activeButtonIndex = ref(0);
 const selectedToken = ref(null);
-const isTokenPopupVisible = ref(false);
 
 // Состояние для настроек
 const isSettingsVisible = ref(false);
@@ -225,17 +214,7 @@ const setActiveButton = (index) => {
   activeButtonIndex.value = index;
   const token = actions.value[index].token;
   selectedToken.value = token;
-  isTokenPopupVisible.value = true;
-
-  // Скрываем попап через 2 секунды
-  setTimeout(() => {
-    isTokenPopupVisible.value = false;
-  }, 2000);
-};
-
-// Добавляем функцию для навигации при клике на попап
-const handleTokenPopupClick = () => {
-  const token = selectedToken.value;
+  
   const routes = {
     daily: '/daily',
     creativity: '/creativity',
@@ -249,13 +228,7 @@ const handleTokenPopupClick = () => {
   if (routes[token]) {
     router.push(routes[token]);
   }
-  isTokenPopupVisible.value = false;
 };
-
-// Функция обмена (пока не реализована)
-function exchange() {
-  alert("Функция обмена не реализована!");
-}
 
 // Функции для работы с настройками
 function toggleSettings() {
@@ -472,7 +445,6 @@ function collectRewards() {
 
 onMounted(async () => {
   console.log('Component mounted');
-  await loadProfile();
   await loadLevelRequirements();
 });
 
@@ -891,54 +863,5 @@ header {
   z-index: 100;
   text-align: center;
   max-width: 80%;
-}
-
-/* Стили для попапа с жетонами */
-.token-popup {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.8);
-  padding: 1rem 2rem;
-  border-radius: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  animation: fadeIn 0.3s ease;
-  cursor: pointer;
-}
-
-.token-popup:hover {
-  background: rgba(0, 0, 0, 0.9);
-}
-
-.token-content {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.token-content img {
-  width: 2rem;
-  height: 2rem;
-}
-
-.token-content span {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: white;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -40%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
 }
 </style>
