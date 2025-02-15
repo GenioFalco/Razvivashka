@@ -79,7 +79,9 @@
       </div>
       
       <!-- Попап с количеством жетонов -->
-      <div v-if="isTokenPopupVisible && selectedToken" class="token-popup">
+      <div v-if="isTokenPopupVisible && selectedToken" 
+           class="token-popup"
+           @click="handleTokenPopupClick">
         <div class="token-content">
           <img :src="actionIcons[selectedToken]" :alt="selectedToken" />
           <span>{{ tokens[selectedToken] }}</span>
@@ -220,23 +222,20 @@ const currentTokenCount = computed(() => {
 
 // Функция для изменения активной кнопки
 const setActiveButton = (index) => {
-  const token = actions.value[index].token;
-  
-  // Проверяем, не тот же ли это токен
-  if (activeButtonIndex.value === index) {
-    selectedToken.value = token;
-    isTokenPopupVisible.value = true;
-    setTimeout(() => {
-      isTokenPopupVisible.value = false;
-    }, 2000);
-    return;
-  }
-  
   activeButtonIndex.value = index;
+  const token = actions.value[index].token;
   selectedToken.value = token;
   isTokenPopupVisible.value = true;
 
-  // Определяем маршрут для каждого токена
+  // Скрываем попап через 2 секунды
+  setTimeout(() => {
+    isTokenPopupVisible.value = false;
+  }, 2000);
+};
+
+// Добавляем функцию для навигации при клике на попап
+const handleTokenPopupClick = () => {
+  const token = selectedToken.value;
   const routes = {
     daily: '/daily',
     creativity: '/creativity',
@@ -247,19 +246,10 @@ const setActiveButton = (index) => {
     articulation: '/articulation'
   };
 
-  // Если есть соответствующий маршрут, переходим на него
   if (routes[token]) {
-    // Используем replace вместо push для предотвращения добавления в историю
-    router.replace(routes[token]).catch(() => {
-      // Игнорируем ошибки навигации
-      console.log('Navigation prevented');
-    });
+    router.push(routes[token]);
   }
-
-  // Скрываем попап через 2 секунды
-  setTimeout(() => {
-    isTokenPopupVisible.value = false;
-  }, 2000);
+  isTokenPopupVisible.value = false;
 };
 
 // Функция обмена (пока не реализована)
@@ -917,6 +907,11 @@ header {
   justify-content: center;
   z-index: 100;
   animation: fadeIn 0.3s ease;
+  cursor: pointer;
+}
+
+.token-popup:hover {
+  background: rgba(0, 0, 0, 0.9);
 }
 
 .token-content {
