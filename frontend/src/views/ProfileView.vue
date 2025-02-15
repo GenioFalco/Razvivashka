@@ -214,20 +214,6 @@ const setActiveButton = (index) => {
   activeButtonIndex.value = index;
   const token = actions.value[index].token;
   selectedToken.value = token;
-  
-  const routes = {
-    daily: '/daily',
-    creativity: '/creativity',
-    rebus: '/rebus',
-    riddles: '/riddles',
-    tongueTwister: '/tonguetwister',
-    neuro: '/neuro',
-    articulation: '/articulation'
-  };
-
-  if (routes[token]) {
-    router.push(routes[token]);
-  }
 };
 
 // Функции для работы с настройками
