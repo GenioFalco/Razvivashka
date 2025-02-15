@@ -50,6 +50,7 @@ import dailyAdmissionIcon from '@/assets/daily_admission.png';
 import rebusIcon from '@/assets/rebus.png';
   import articulationIcon from '@/assets/articulation.png';
 import dailyIcon from '@/assets/daily.png';
+import tongueTwisterIcon from '@/assets/tonguetwisters.png';
 import { API_URL } from '@/config';
   
   const props = defineProps({
