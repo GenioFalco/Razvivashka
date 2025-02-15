@@ -77,6 +77,14 @@
           <img :src="action.icon" :alt="action.name" />
         </button>
       </div>
+      
+      <!-- Попап с количеством жетонов -->
+      <div v-if="isTokenPopupVisible && selectedToken" class="token-popup">
+        <div class="token-content">
+          <img :src="actionIcons[selectedToken]" :alt="selectedToken" />
+          <span>{{ tokens[selectedToken] }}</span>
+        </div>
+      </div>
     </div>
 
     <!-- Компонент настроек -->
@@ -169,6 +177,7 @@ const actions = ref([
 // Состояние для активной кнопки и попапа
 const activeButtonIndex = ref(0);
 const selectedToken = ref(null);
+const isTokenPopupVisible = ref(false);
 
 // Состояние для настроек
 const isSettingsVisible = ref(false);
@@ -214,7 +223,18 @@ const setActiveButton = (index) => {
   activeButtonIndex.value = index;
   const token = actions.value[index].token;
   selectedToken.value = token;
+  isTokenPopupVisible.value = true;
+
+  // Скрываем попап через 2 секунды
+  setTimeout(() => {
+    isTokenPopupVisible.value = false;
+  }, 2000);
 };
+
+// Функция обмена (пока не реализована)
+function exchange() {
+  alert("Функция обмена не реализована!");
+}
 
 // Функции для работы с настройками
 function toggleSettings() {
@@ -304,16 +324,9 @@ async function loadLevelRequirements() {
   }
 }
 
-// Добавляем обработчик для предотвращения множественных загрузок
-let isLoading = false;
-
 // Обновляем функцию loadProfile
 async function loadProfile() {
-  if (isLoading) return;
-  
   try {
-    isLoading = true;
-    console.log('Loading profile...');
     loading.value = true;
     error.value = null;
     
@@ -347,13 +360,11 @@ async function loadProfile() {
       articulation: user.tokens.articulation
     };
     
-    console.log('Profile loaded successfully');
   } catch (err) {
     console.error('Error loading profile:', err);
     error.value = 'Ошибка при загрузке профиля';
   } finally {
     loading.value = false;
-    isLoading = false;
   }
 }
 
@@ -430,8 +441,10 @@ function collectRewards() {
 }
 
 onMounted(async () => {
-  console.log('Component mounted');
-  await loadLevelRequirements();
+  await Promise.all([
+    loadProfile(),
+    loadLevelRequirements()
+  ]);
 });
 
 </script>
@@ -849,5 +862,49 @@ header {
   z-index: 100;
   text-align: center;
   max-width: 80%;
+}
+
+/* Стили для попапа с жетонами */
+.token-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  padding: 1rem 2rem;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.3s ease;
+}
+
+.token-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.token-content img {
+  width: 2rem;
+  height: 2rem;
+}
+
+.token-content span {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
 }
 </style>
