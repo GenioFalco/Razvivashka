@@ -148,16 +148,16 @@ const canLevelUp = computed(() => {
 });
 
 const hasToken = (tokenName) => {
-  return props.tokens?.[tokenName] > 0;
+  return (props.tokens?.[tokenName] || 0) > 0;
 };
 
 const getTokenIcon = (tokenName) => {
   const icons = {
     creativity: creativityIcon,
-    riddles: neuroIcon,
+    riddles: riddlesIcon,
     rebus: rebusIcon,
-    neuro: dailyAdmissionIcon,
-    tongueTwister: neuroIcon,
+    neuro: neuroIcon,
+    tongueTwister: tongueTwisterIcon,
     articulation: articulationIcon,
     daily: dailyIcon
   };
