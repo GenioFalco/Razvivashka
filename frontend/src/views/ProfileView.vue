@@ -287,28 +287,7 @@ async function updateNickname(newNickname) {
   }
 }
 
-// Функция для загрузки данных о жетонах
-async function loadTokens() {
-  try {
-    const guestId = localStorage.getItem('guestId');
-    if (!guestId) return;
-    
-    const response = await axios.get(`${API_URL}/profile/${guestId}`);
-    const { user } = response.data;
-    
-    tokens.value = {
-      daily: user.tokens.daily,
-      creativity: user.tokens.creativity,
-      rebus: user.tokens.wit,
-      riddles: user.tokens.intelligence,
-      tongueTwister: user.tokens.focus,
-      neuro: user.tokens.energy,
-      articulation: user.tokens.articulation
-    };
-  } catch (err) {
-    console.error('Error loading tokens:', err);
-  }
-}
+
 
 // Функция для загрузки требований уровней
 async function loadLevelRequirements() {

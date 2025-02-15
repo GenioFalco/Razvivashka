@@ -12,7 +12,6 @@ export default {
   setup() {
     const router = useRouter();
     const historyStack = ref([]);
-    const isNavigating = ref(false);
 
     onMounted(() => {
       if (!window.Telegram || !window.Telegram.WebApp) {
@@ -26,16 +25,6 @@ export default {
       const BackButton = WebApp.BackButton;
 
       router.afterEach((to, from) => {
-        if (isNavigating.value) {
-          return;
-        }
-
-        isNavigating.value = true;
-        
-        if (to.path.includes('/profile')) {
-          return;
-        }
-        
         if (from.path && from.path !== to.path) {
           historyStack.value.push(from.path);
         }
@@ -46,10 +35,6 @@ export default {
         } else {
           BackButton.show();
         }
-
-        setTimeout(() => {
-          isNavigating.value = false;
-        }, 100);
       });
 
       BackButton.onClick(() => {
