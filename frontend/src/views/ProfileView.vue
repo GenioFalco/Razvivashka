@@ -220,10 +220,41 @@ const currentTokenCount = computed(() => {
 
 // Функция для изменения активной кнопки
 const setActiveButton = (index) => {
-  activeButtonIndex.value = index;
   const token = actions.value[index].token;
+  
+  // Проверяем, не тот же ли это токен
+  if (activeButtonIndex.value === index) {
+    selectedToken.value = token;
+    isTokenPopupVisible.value = true;
+    setTimeout(() => {
+      isTokenPopupVisible.value = false;
+    }, 2000);
+    return;
+  }
+  
+  activeButtonIndex.value = index;
   selectedToken.value = token;
   isTokenPopupVisible.value = true;
+
+  // Определяем маршрут для каждого токена
+  const routes = {
+    daily: '/daily',
+    creativity: '/creativity',
+    rebus: '/rebus',
+    riddles: '/riddles',
+    tongueTwister: '/tonguetwister',
+    neuro: '/neuro',
+    articulation: '/articulation'
+  };
+
+  // Если есть соответствующий маршрут, переходим на него
+  if (routes[token]) {
+    // Используем replace вместо push для предотвращения добавления в историю
+    router.replace(routes[token]).catch(() => {
+      // Игнорируем ошибки навигации
+      console.log('Navigation prevented');
+    });
+  }
 
   // Скрываем попап через 2 секунды
   setTimeout(() => {
@@ -324,9 +355,16 @@ async function loadLevelRequirements() {
   }
 }
 
+// Добавляем обработчик для предотвращения множественных загрузок
+let isLoading = false;
+
 // Обновляем функцию loadProfile
 async function loadProfile() {
+  if (isLoading) return;
+  
   try {
+    isLoading = true;
+    console.log('Loading profile...');
     loading.value = true;
     error.value = null;
     
@@ -360,11 +398,13 @@ async function loadProfile() {
       articulation: user.tokens.articulation
     };
     
+    console.log('Profile loaded successfully');
   } catch (err) {
     console.error('Error loading profile:', err);
     error.value = 'Ошибка при загрузке профиля';
   } finally {
     loading.value = false;
+    isLoading = false;
   }
 }
 
@@ -441,10 +481,9 @@ function collectRewards() {
 }
 
 onMounted(async () => {
-  await Promise.all([
-    loadProfile(),
-    loadLevelRequirements()
-  ]);
+  console.log('Component mounted');
+  await loadProfile();
+  await loadLevelRequirements();
 });
 
 </script>
