@@ -32,6 +32,10 @@ export default {
 
         isNavigating.value = true;
         
+        if (to.path.includes('/profile')) {
+          return;
+        }
+        
         if (from.path && from.path !== to.path) {
           historyStack.value.push(from.path);
         }
