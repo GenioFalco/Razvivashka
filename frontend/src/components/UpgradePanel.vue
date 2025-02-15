@@ -102,6 +102,13 @@ const upgradeParameter = async (parameter) => {
     }
 
     const data = await response.json();
+    // Обновляем данные сразу после успешного запроса
+    if (data.character) {
+      Object.assign(props.character, data.character);
+    }
+    if (data.tokens) {
+      Object.assign(props.tokens, data.tokens);
+    }
     emit('upgrade', data);
   } catch (error) {
     console.error('Error upgrading parameter:', error);
@@ -297,14 +304,25 @@ const maxParameterValue = computed(() => {
     border: none;
   border-radius: 8px;
     cursor: pointer;
-  }
-  
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.upgrade-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .upgrade-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  }
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.upgrade-button span {
+  color: white;
+}
   
-  .token-icon {
+.token-icon {
   width: 20px;
   height: 20px;
 }
