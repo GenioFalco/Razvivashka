@@ -300,35 +300,20 @@ async function loadLevelRequirements() {
 }
 
 // Обновляем функцию loadProfile
-const loadProfile = async () => {
-  loading.value = true;
-  error.value = null;
-
+async function loadProfile() {
   try {
-    const guestId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    loading.value = true;
+    error.value = null;
+    
+    let guestId = localStorage.getItem('guestId');
     if (!guestId) {
-      error.value = 'Ошибка: ID пользователя не найден';
-      loading.value = false;
-      return;
+      guestId = Math.floor(Math.random() * 1000000).toString();
+      localStorage.setItem('guestId', guestId);
     }
 
     const response = await axios.get(`${API_URL}/profile/${guestId}`);
-    const { user, characterData, tokens: userTokens } = response.data;
-
-    // Обновляем данные пользователя
-    if (user) {
-      nickname.value = user.username || 'Гость';
-      level.value = user.level || 1;
-      xp.value = user.xp || 0;
-    }
-
-    // Обновляем токены
-    if (userTokens) {
-      coins.value = userTokens.coins || 0;
-      tokens.value = userTokens.trophy_tokens || 0;
-      trophies.value = userTokens.trophy_tokens || 0;
-    }
-
+    const { user, character: characterData } = response.data;
+    
     // Обновляем данные персонажа
     if (characterData) {
       character.value = characterData;
@@ -337,7 +322,29 @@ const loadProfile = async () => {
       }
     }
 
-    // Загружаем требования для текущего уровня
+    // Обновляем данные пользователя
+    if (user) {
+      nickname.value = user.nickname || '';
+      level.value = user.level || 1;
+      xp.value = user.xp || 0;
+      coins.value = user.coins || 0;
+      trophies.value = user.trophy_tokens || 0;
+      
+      // Обновляем токены
+      if (user.tokens) {
+        tokens.value = {
+          daily: user.tokens.daily || 0,
+          creativity: user.tokens.creativity || 0,
+          rebus: user.tokens.rebus || 0,
+          riddles: user.tokens.riddles || 0,
+          tongueTwister: user.tokens.tongueTwister || 0,
+          neuro: user.tokens.neuro || 0,
+          articulation: user.tokens.articulation || 0
+        };
+      }
+    }
+    
+    // Загружаем требования для уровней
     await loadLevelRequirements();
     
   } catch (err) {
@@ -346,7 +353,7 @@ const loadProfile = async () => {
   } finally {
     loading.value = false;
   }
-};
+}
 
 const handleImageError = () => {
   console.log('Image loading error in profile, using default image');
