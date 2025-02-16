@@ -244,25 +244,39 @@ function toggleUpgradePanel() {
   isUpgradePanelVisible.value = !isUpgradePanelVisible.value;
 }
 
+// Добавляем состояние для персонажа
+const character = ref({
+  id: null,
+  name: 'Default Character',
+  level: 0,
+  image_url: profileImage,
+  creativity_level: 0,
+  intelligence_level: 0,
+  wit_level: 0,
+  energy_level: 0,
+  focus_level: 0,
+  articulation_level: 0,
+  activity_level: 0
+});
+
+// Обновляем функцию handleUpgrade
 function handleUpgrade(data) {
+  console.log('Получены данные обновления:', data);
+  
   if (data.character) {
-    profileIcon.value = data.character.image_url;
+    character.value = {
+      ...character.value,
+      ...data.character
+    };
+    profileIcon.value = data.character.image_url || profileImage;
   }
+  
   if (data.tokens) {
     tokens.value = {
       ...tokens.value,
       ...data.tokens
     };
   }
-  // Обновляем другие значения, если они есть
-  if (data.coins) {
-    coins.value = data.coins;
-  }
-  if (data.trophies) {
-    trophies.value = data.trophies;
-  }
-  console.log('Updated character:', profileIcon.value);
-  console.log('Updated tokens:', tokens.value);
 }
 
 // Функция обновления никнейма
@@ -281,8 +295,6 @@ async function updateNickname(newNickname) {
     error.value = 'Ошибка при обновлении имени';
   }
 }
-
-
 
 // Функция для загрузки требований уровней
 async function loadLevelRequirements() {
@@ -311,7 +323,7 @@ async function loadProfile() {
     }
     
     const response = await axios.get(`${API_URL}/profile/${guestId}`);
-    const { user, character } = response.data;
+    const { user, character: characterData } = response.data;
     
     nickname.value = user.username;
     level.value = user.level;
@@ -319,8 +331,12 @@ async function loadProfile() {
     coins.value = user.tokens.coins;
     trophies.value = user.tokens.trophy;
     
-    if (character && character.image_url) {
-      profileIcon.value = character.image_url;
+    if (characterData) {
+      character.value = {
+        ...character.value,
+        ...characterData
+      };
+      profileIcon.value = characterData.image_url || profileImage;
     }
     
     // Обновляем токены из того же ответа

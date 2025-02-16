@@ -144,9 +144,11 @@ const getMaxLevel = computed(() => {
 });
 
 const canUpgrade = (paramName) => {
+  if (!props.character) return false;
+  
   const paramLevel = props.character[`${paramName}_level`] || 0;
   const tokenName = parameters.find(p => p.name === paramName)?.token;
-  return hasToken(tokenName) && paramLevel < getMaxLevel.value;
+  return hasToken(tokenName) && paramLevel < maxParameterValue.value;
 };
 
 const canLevelUp = computed(() => {
@@ -155,7 +157,7 @@ const canLevelUp = computed(() => {
   // Проверяем, что все параметры достигли максимального уровня
   const allParametersMaxed = parameters.every(param => {
     const paramLevel = props.character[`${param.name}_level`] || 0;
-    return paramLevel >= getMaxLevel.value;
+    return paramLevel >= maxParameterValue.value;
   });
   
   // Проверяем, что уровень персонажа меньше 10
@@ -164,7 +166,8 @@ const canLevelUp = computed(() => {
 });
 
 const hasToken = (tokenName) => {
-  return (props.tokens?.[tokenName] || 0) > 0;
+  if (!props.tokens) return false;
+  return (props.tokens[tokenName] || 0) > 0;
 };
 
 const getTokenIcon = (tokenName) => {
@@ -181,12 +184,15 @@ const getTokenIcon = (tokenName) => {
 };
 
 const getProgressWidth = (paramName) => {
-  const currentLevel = props.character?.[`${paramName}_level`] || 0;
-  return `${(currentLevel / getMaxLevel.value) * 100}%`;
+  if (!props.character) return '0%';
+  const currentLevel = props.character[`${paramName}_level`] || 0;
+  return `${(currentLevel / maxParameterValue.value) * 100}%`;
 };
 
 const maxParameterValue = computed(() => {
-  const characterLevel = props.character?.level || 0;
+  if (!props.character) return 5;
+  
+  const characterLevel = props.character.level || 0;
   const maxLevels = {
     0: 5,
     1: 8,
