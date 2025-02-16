@@ -60,7 +60,7 @@
         class="character-image"
         @error="handleImageError"
       />
-      <div class="character-level">{{ level }}</div>
+      <div class="character-level">{{ character?.level || 0 }}</div>
       <button class="exchange-button" @click="toggleUpgradePanel">ПРОКАЧАТЬ</button>
     </div>
 
@@ -244,39 +244,25 @@ function toggleUpgradePanel() {
   isUpgradePanelVisible.value = !isUpgradePanelVisible.value;
 }
 
-// Добавляем состояние для персонажа
-const character = ref({
-  id: null,
-  name: 'Default Character',
-  level: 0,
-  image_url: profileImage,
-  creativity_level: 0,
-  intelligence_level: 0,
-  wit_level: 0,
-  energy_level: 0,
-  focus_level: 0,
-  articulation_level: 0,
-  activity_level: 0
-});
-
-// Обновляем функцию handleUpgrade
 function handleUpgrade(data) {
-  console.log('Получены данные обновления:', data);
-  
   if (data.character) {
-    character.value = {
-      ...character.value,
-      ...data.character
-    };
-    profileIcon.value = data.character.image_url || profileImage;
+    profileIcon.value = data.character.image_url;
   }
-  
   if (data.tokens) {
     tokens.value = {
       ...tokens.value,
       ...data.tokens
     };
   }
+  // Обновляем другие значения, если они есть
+  if (data.coins) {
+    coins.value = data.coins;
+  }
+  if (data.trophies) {
+    trophies.value = data.trophies;
+  }
+  console.log('Updated character:', profileIcon.value);
+  console.log('Updated tokens:', tokens.value);
 }
 
 // Функция обновления никнейма
@@ -295,6 +281,8 @@ async function updateNickname(newNickname) {
     error.value = 'Ошибка при обновлении имени';
   }
 }
+
+
 
 // Функция для загрузки требований уровней
 async function loadLevelRequirements() {
@@ -323,7 +311,7 @@ async function loadProfile() {
     }
     
     const response = await axios.get(`${API_URL}/profile/${guestId}`);
-    const { user, character: characterData } = response.data;
+    const { user, character } = response.data;
     
     nickname.value = user.username;
     level.value = user.level;
@@ -331,12 +319,8 @@ async function loadProfile() {
     coins.value = user.tokens.coins;
     trophies.value = user.tokens.trophy;
     
-    if (characterData) {
-      character.value = {
-        ...character.value,
-        ...characterData
-      };
-      profileIcon.value = characterData.image_url || profileImage;
+    if (character && character.image_url) {
+      profileIcon.value = character.image_url;
     }
     
     // Обновляем токены из того же ответа
@@ -369,46 +353,47 @@ async function addTestXP() {
     const guestId = localStorage.getItem('guestId');
     if (!guestId) {
       console.error('GuestId not found');
+      error.value = 'Ошибка: ID пользователя не найден';
       return;
     }
 
-    const response = await fetch(`${API_URL}/profile/${guestId}/xp`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ xp: 10 })
+    const response = await axios.post(`${API_URL}/profile/${guestId}/xp`, {
+      xp: 10
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to add XP');
+    if (response.data) {
+      console.log('Получены данные:', response.data);
+
+      // Обновляем XP и уровень
+      xp.value = response.data.xp || xp.value;
+      level.value = response.data.level || level.value;
+
+      // Если получены награды за новый уровень
+      if (response.data.rewards) {
+        console.log('Получены награды:', response.data.rewards);
+        levelRewards.value = {
+          level: response.data.level,
+          coins: response.data.rewards.coins,
+          trophyTokens: response.data.rewards.trophy_tokens,
+          character: response.data.rewards.character
+        };
+        isLevelRewardVisible.value = true;
+      }
+
+      // Обновляем токены в любом случае
+      if (response.data.tokens) {
+        coins.value = response.data.tokens.coins || coins.value;
+        trophies.value = response.data.tokens.trophy_tokens || trophies.value;
+      }
     }
-
-    const data = await response.json();
-    console.log('Получены данные:', data);
-
-    // Обновляем XP и уровень
-    xp.value = data.xp;
-    level.value = data.level;
-
-    // Если получены награды за новый уровень
-    if (data.rewards) {
-      console.log('Получены награды:', data.rewards);
-      // Показываем панель с наградами, НО пока не начисляем их
-      levelRewards.value = {
-        level: data.level,
-        coins: data.rewards.coins,
-        trophyTokens: data.rewards.trophy_tokens,
-        character: data.rewards.character
-      };
-      isLevelRewardVisible.value = true;
-    } else {
-      // Если наград нет, просто обновляем токены
-      coins.value = data.tokens.coins;
-      trophies.value = data.tokens.trophy_tokens;
+  } catch (err) {
+    console.error('Error adding XP:', err);
+    error.value = 'Ошибка при добавлении опыта';
+    
+    // Если ошибка связана с ответом сервера, выводим дополнительную информацию
+    if (err.response) {
+      console.error('Server error details:', err.response.data);
     }
-  } catch (error) {
-    console.error('Error:', error);
   }
 }
 
