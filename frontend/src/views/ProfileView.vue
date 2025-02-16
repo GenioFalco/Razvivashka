@@ -151,6 +151,7 @@ const nickname = ref('');
 const loading = ref(true);
 const error = ref(null);
 const profileIcon = ref(profileImage);
+const character = ref(null);
 
 // Состояние для жетонов
 const tokens = ref({
@@ -311,7 +312,7 @@ async function loadProfile() {
     }
     
     const response = await axios.get(`${API_URL}/profile/${guestId}`);
-    const { user, character } = response.data;
+    const { user, characterData } = response.data;
     
     nickname.value = user.username;
     level.value = user.level;
@@ -319,8 +320,12 @@ async function loadProfile() {
     coins.value = user.tokens.coins;
     trophies.value = user.tokens.trophy;
     
-    if (character && character.image_url) {
-      profileIcon.value = character.image_url;
+    // Обновляем данные персонажа
+    if (characterData) {
+      character.value = characterData;
+      if (characterData.image_url) {
+        profileIcon.value = characterData.image_url;
+      }
     }
     
     // Обновляем токены из того же ответа
