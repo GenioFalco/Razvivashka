@@ -150,7 +150,6 @@ const nickname = ref('');
 const loading = ref(true);
 const error = ref(null);
 const profileIcon = ref(profileImage);
-const character = ref(null);
 
 // Состояние для жетонов
 const tokens = ref({
@@ -282,6 +281,8 @@ async function updateNickname(newNickname) {
   }
 }
 
+
+
 // Функция для загрузки требований уровней
 async function loadLevelRequirements() {
   try {
@@ -296,55 +297,45 @@ async function loadLevelRequirements() {
   }
 }
 
-// Функция загрузки профиля
+// Обновляем функцию loadProfile
 async function loadProfile() {
   try {
     loading.value = true;
     error.value = null;
-    const guestId = localStorage.getItem('guestId');
     
+    let guestId = localStorage.getItem('guestId');
     if (!guestId) {
-      error.value = 'Ошибка: ID пользователя не найден';
-      return;
+      guestId = Math.floor(Math.random() * 1000000).toString();
+      localStorage.setItem('guestId', guestId);
     }
-
+    
     const response = await axios.get(`${API_URL}/profile/${guestId}`);
-    const { user, characterData } = response.data;
-
-    if (characterData) {
-      character.value = characterData;
-      if (characterData.image_url) {
-        profileIcon.value = characterData.image_url;
-      }
-      level.value = characterData.level || 1;
+    const { user, character } = response.data;
+    
+    nickname.value = user.username;
+    level.value = user.level;
+    xp.value = user.xp;
+    coins.value = user.tokens.coins;
+    trophies.value = user.tokens.trophy;
+    
+    if (character && character.image_url) {
+      profileIcon.value = character.image_url;
     }
-
-    if (user) {
-      nickname.value = user.nickname || '';
-      xp.value = user.xp || 0;
-      coins.value = user.coins || 0;
-      trophies.value = user.trophy_tokens || 0;
-      
-      if (user.tokens) {
-        tokens.value = {
-          daily: user.tokens.daily || 0,
-          creativity: user.tokens.creativity || 0,
-          rebus: user.tokens.rebus || 0,
-          riddles: user.tokens.riddles || 0,
-          tongueTwister: user.tokens.tongueTwister || 0,
-          neuro: user.tokens.neuro || 0,
-          articulation: user.tokens.articulation || 0
-        };
-      }
-    }
-
-    // Загружаем требования для уровней
-    const levelsResponse = await axios.get(`${API_URL}/levels`);
-    nextLevelRequirements.value = levelsResponse.data;
+    
+    // Обновляем токены из того же ответа
+    tokens.value = {
+      daily: user.tokens.daily,
+      creativity: user.tokens.creativity,
+      rebus: user.tokens.wit,
+      riddles: user.tokens.intelligence,
+      tongueTwister: user.tokens.focus,
+      neuro: user.tokens.energy,
+      articulation: user.tokens.articulation
+    };
     
   } catch (err) {
     console.error('Error loading profile:', err);
-    error.value = 'Ошибка загрузки профиля';
+    error.value = 'Ошибка при загрузке профиля';
   } finally {
     loading.value = false;
   }
