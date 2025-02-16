@@ -378,22 +378,15 @@ async function addTestXP() {
 
     console.log('Получены данные:', response.data);
 
-    // Обновляем XP и уровень
+    // Обновляем только XP и уровень
     if (response.data.user) {
       xp.value = response.data.user.xp;
       level.value = response.data.user.level;
-      
-      // Обновляем токены
-      if (response.data.user.tokens) {
-        coins.value = response.data.user.tokens.coins;
-        trophies.value = response.data.user.tokens.trophy;
-      }
     }
 
-    // Если получены награды за новый уровень
+    // Если получены награды за новый уровень, показываем панель
     if (response.data.rewards) {
       console.log('Получены награды:', response.data.rewards);
-      // Показываем панель с наградами
       levelRewards.value = {
         level: response.data.user.level,
         coins: response.data.rewards.coins,
@@ -408,17 +401,45 @@ async function addTestXP() {
   }
 }
 
-function collectRewards() {
+async function collectRewards() {
   console.log('Собираем награды:', levelRewards.value);
-  // Начисляем награды только при нажатии кнопки "Забрать"
-  if (levelRewards.value) {
-    coins.value += levelRewards.value.coins;
-    trophies.value += levelRewards.value.trophyTokens;
-    
-    // Если есть новый персонаж, устанавливаем его изображение
-    if (levelRewards.value.character) {
-      profileIcon.value = levelRewards.value.character.image_url;
+  
+  try {
+    const guestId = localStorage.getItem('guestId');
+    if (!guestId) {
+      error.value = 'Ошибка: ID пользователя не найден';
+      return;
     }
+
+    // Обновляем данные профиля с сервера
+    const response = await axios.get(`${API_URL}/profile/${guestId}`);
+    const { user, character: characterData } = response.data;
+    
+    // Обновляем все значения из ответа сервера
+    coins.value = user.tokens.coins;
+    trophies.value = user.tokens.trophy;
+    
+    if (characterData) {
+      character.value = {
+        ...character.value,
+        ...characterData
+      };
+      profileIcon.value = characterData.image_url || profileImage;
+    }
+    
+    // Обновляем токены
+    tokens.value = {
+      daily: user.tokens.daily,
+      creativity: user.tokens.creativity,
+      rebus: user.tokens.wit,
+      riddles: user.tokens.intelligence,
+      tongueTwister: user.tokens.focus,
+      neuro: user.tokens.energy,
+      articulation: user.tokens.articulation
+    };
+  } catch (err) {
+    console.error('Ошибка при обновлении данных:', err);
+    error.value = 'Ошибка при получении наград';
   }
   
   // Скрываем панель наград
