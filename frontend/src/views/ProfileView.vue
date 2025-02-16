@@ -34,9 +34,10 @@
     <div class="level-info">
       <span>Уровень {{ level }}</span>
       <div class="xp-container">
-        <div class="xp-bar">
-          <div class="xp-progress" :style="{ width: xpProgress + '%' }"></div>
+      <div class="xp-bar">
+        <div class="xp-progress" :style="{ width: xpProgress + '%' }"></div>
         </div>
+        <button class="add-xp-button" @click="addTestXP">+10 XP</button>
       </div>
       <span class="xp-text">XP {{ currentLevelXP }}/{{ nextLevelXP }}</span>
     </div>
@@ -53,14 +54,13 @@
 
     <!-- Контейнер с персонажем и кнопкой прокачки -->
     <div v-else class="character-container">
-      <img 
-        :src="profileIcon" 
-        alt="Character" 
-        class="character-image"
-        @error="handleImageError"
-      />
-      <div class="character-level">{{ level }}</div>
-      <button class="exchange-button" @click="toggleUpgradePanel">ПРОКАЧАТЬ</button>
+      <div class="profile-container">
+        <div class="profile-icon-container">
+          <img :src="profileIcon" alt="Profile" class="profile-icon" />
+          <div class="level-badge">{{ character.level || 0 }}</div>
+        </div>
+        <button class="upgrade-button" @click="toggleUpgradePanel">ПРОКАЧАТЬ</button>
+      </div>
     </div>
 
     <!-- Нижняя панель с кнопками действий -->
@@ -243,25 +243,39 @@ function toggleUpgradePanel() {
   isUpgradePanelVisible.value = !isUpgradePanelVisible.value;
 }
 
+// Добавляем состояние для персонажа
+const character = ref({
+  id: null,
+  name: 'Default Character',
+  level: 0,
+  image_url: profileImage,
+  creativity_level: 0,
+  intelligence_level: 0,
+  wit_level: 0,
+  energy_level: 0,
+  focus_level: 0,
+  articulation_level: 0,
+  activity_level: 0
+});
+
+// Обновляем функцию handleUpgrade
 function handleUpgrade(data) {
+  console.log('Получены данные обновления:', data);
+  
   if (data.character) {
-    profileIcon.value = data.character.image_url;
+    character.value = {
+      ...character.value,
+      ...data.character
+    };
+    profileIcon.value = data.character.image_url || profileImage;
   }
+  
   if (data.tokens) {
     tokens.value = {
       ...tokens.value,
       ...data.tokens
     };
   }
-  // Обновляем другие значения, если они есть
-  if (data.coins) {
-    coins.value = data.coins;
-  }
-  if (data.trophies) {
-    trophies.value = data.trophies;
-  }
-  console.log('Updated character:', profileIcon.value);
-  console.log('Updated tokens:', tokens.value);
 }
 
 // Функция обновления никнейма
@@ -280,8 +294,6 @@ async function updateNickname(newNickname) {
     error.value = 'Ошибка при обновлении имени';
   }
 }
-
-
 
 // Функция для загрузки требований уровней
 async function loadLevelRequirements() {
@@ -310,7 +322,7 @@ async function loadProfile() {
     }
     
     const response = await axios.get(`${API_URL}/profile/${guestId}`);
-    const { user, character } = response.data;
+    const { user, character: characterData } = response.data;
     
     nickname.value = user.username;
     level.value = user.level;
@@ -318,8 +330,12 @@ async function loadProfile() {
     coins.value = user.tokens.coins;
     trophies.value = user.tokens.trophy;
     
-    if (character && character.image_url) {
-      profileIcon.value = character.image_url;
+    if (characterData) {
+      character.value = {
+        ...character.value,
+        ...characterData
+      };
+      profileIcon.value = characterData.image_url || profileImage;
     }
     
     // Обновляем токены из того же ответа
@@ -582,7 +598,17 @@ header {
   pointer-events: none;
 }
 
-.character-image {
+.profile-container {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-icon-container {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-icon {
   width: clamp(12rem, 40vh, 20rem);
   height: auto;
   object-fit: contain;
@@ -595,26 +621,25 @@ header {
 }
 
 /* Стили для кружка с уровнем */
-.character-level {
+.level-badge {
   position: absolute;
-  top: 35%;
-  right: calc(50% - clamp(5rem, 18vh, 9rem));
-  width: 2.5rem;
-  height: 2.5rem;
-  background: rgba(0, 0, 0, 0.4);
+  top: 0;
+  right: 0;
+  background-color: #ff4444;
+  color: white;
   border-radius: 50%;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 1.2rem;
-  color: white;
-  pointer-events: none;
-  z-index: 21;
+  font-size: 16px;
+  border: 2px solid white;
 }
 
 /* Стили для кнопки обмена */
-.exchange-button {
+.upgrade-button {
   background: #3b82f6;
   color: white;
   border: none;
@@ -632,7 +657,7 @@ header {
   pointer-events: auto;
 }
 
-.exchange-button:active {
+.upgrade-button:active {
   transform: scale(0.98);
 }
 
@@ -737,22 +762,21 @@ header {
     margin-top: -15vh;
   }
 
-  .character-image {
+  .profile-icon {
     width: clamp(16rem, 45vh, 24rem);
     margin-bottom: -2%;
   }
 
-  .exchange-button {
+  .upgrade-button {
     padding: clamp(1rem, 3vh, 2rem) clamp(3rem, 6vh, 5rem);
     font-size: clamp(1.2rem, 3vh, 1.6rem);
     margin-top: -4%;
   }
 
-  .character-level {
+  .level-badge {
     width: 3rem;
     height: 3rem;
     font-size: 1.4rem;
-    right: calc(50% - clamp(6rem, 20vh, 10rem));
   }
 }
 
@@ -761,7 +785,7 @@ header {
     margin-top: -20vh;
   }
 
-  .character-image {
+  .profile-icon {
     width: clamp(20rem, 50vh, 28rem);
     margin-bottom: -1%;
   }
@@ -770,15 +794,14 @@ header {
     height: clamp(45vh, 50vh, 55vh);
   }
 
-  .exchange-button {
+  .upgrade-button {
     margin-top: -2%;
   }
 
-  .character-level {
+  .level-badge {
     width: 3.5rem;
     height: 3.5rem;
     font-size: 1.6rem;
-    right: calc(50% - clamp(7rem, 22vh, 11rem));
   }
 }
 
@@ -787,11 +810,11 @@ header {
     margin-top: -3vh;
   }
 
-  .character-image {
+  .profile-icon {
     width: clamp(10rem, 35vh, 18rem);
   }
 
-  .exchange-button {
+  .upgrade-button {
     padding: clamp(0.5rem, 2vh, 1rem) clamp(1.5rem, 4vh, 3rem);
     font-size: clamp(1rem, 2vh, 1.2rem);
   }
@@ -800,11 +823,10 @@ header {
     height: 50vh;
   }
 
-  .character-level {
+  .level-badge {
     width: 2.5rem;
     height: 2.5rem;
     font-size: 1.2rem;
-    right: calc(50% - clamp(5rem, 18vh, 9rem));
   }
 }
 
