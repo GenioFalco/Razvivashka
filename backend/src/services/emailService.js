@@ -1,13 +1,5 @@
 const nodemailer = require('nodemailer');
 
-// Проверяем наличие необходимых переменных окружения
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-    console.error('Missing required environment variables:');
-    console.error('EMAIL_USER:', process.env.EMAIL_USER ? 'Set' : 'Missing');
-    console.error('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? 'Set' : 'Missing');
-    throw new Error('Missing required environment variables');
-}
-
 // Создаем транспорт для отправки почты
 const transporter = nodemailer.createTransport({
     host: "smtp.mail.ru",
@@ -19,15 +11,6 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Проверяем соединение при инициализации
-transporter.verify(function(error, success) {
-    if (error) {
-        console.error('SMTP connection error:', error);
-    } else {
-        console.log('SMTP server is ready to take our messages');
-    }
-});
-
 // Генерация случайного 6-значного кода
 function generateVerificationCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -35,17 +18,20 @@ function generateVerificationCode() {
 
 // Отправка кода подтверждения
 async function sendVerificationCode(email, code) {
-    if (!email || !code) {
-        console.error('Missing required parameters:', { email: !!email, code: !!code });
-        return false;
-    }
-
     try {
-        console.log('Attempting to send email...');
-        console.log('To:', email);
-        console.log('Using email account:', process.env.EMAIL_USER);
+        console.log('Preparing to send email to:', email);
+        console.log('Using SMTP configuration:', {
+            host: "smtp.mail.ru",
+            port: 465,
+            secure: true,
+            auth: {
+                user: process.env.EMAIL_USER,
+                // Не логируем пароль в целях безопасности
+                pass: '********'
+            }
+        });
 
-        const mailOptions = {
+        const info = await transporter.sendMail({
             from: `"Razvivashka" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: "Код подтверждения",
@@ -58,20 +44,17 @@ async function sendVerificationCode(email, code) {
                     <p>Если вы не запрашивали этот код, просто проигнорируйте это письмо.</p>
                 </div>
             `
-        };
-
-        const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent successfully');
-        console.log('Message ID:', info.messageId);
-        console.log('Preview URL:', nodemailer.getTestMessageUrl(info));
+        });
+        console.log('Email sent successfully:', info.messageId);
         return true;
     } catch (error) {
-        console.error('Error sending email:');
-        console.error('Error name:', error.name);
-        console.error('Error message:', error.message);
-        console.error('Error code:', error.code);
-        console.error('Error command:', error.command);
-        console.error('Full error:', error);
+        console.error('Detailed error sending email:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            code: error.code,
+            command: error.command
+        });
         return false;
     }
 }
@@ -79,4 +62,4 @@ async function sendVerificationCode(email, code) {
 module.exports = {
     generateVerificationCode,
     sendVerificationCode
-};
+}; 
