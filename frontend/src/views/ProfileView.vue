@@ -373,32 +373,34 @@ async function addTestXP() {
     }
 
     const response = await axios.post(`${API_URL}/profile/${guestId}/xp`, {
-      xp: 10
+      amount: 10
     });
 
     console.log('Получены данные:', response.data);
 
     // Обновляем XP и уровень
-    xp.value = response.data.xp;
-    level.value = response.data.level;
+    if (response.data.user) {
+      xp.value = response.data.user.xp;
+      level.value = response.data.user.level;
+      
+      // Обновляем токены
+      if (response.data.user.tokens) {
+        coins.value = response.data.user.tokens.coins;
+        trophies.value = response.data.user.tokens.trophy;
+      }
+    }
 
     // Если получены награды за новый уровень
     if (response.data.rewards) {
       console.log('Получены награды:', response.data.rewards);
       // Показываем панель с наградами
       levelRewards.value = {
-        level: response.data.level,
+        level: response.data.user.level,
         coins: response.data.rewards.coins,
         trophyTokens: response.data.rewards.trophy_tokens,
         character: response.data.rewards.character
       };
       isLevelRewardVisible.value = true;
-    } else {
-      // Если наград нет, просто обновляем токены
-      if (response.data.tokens) {
-        coins.value = response.data.tokens.coins;
-        trophies.value = response.data.tokens.trophy_tokens;
-      }
     }
   } catch (err) {
     console.error('Ошибка при добавлении XP:', err);
