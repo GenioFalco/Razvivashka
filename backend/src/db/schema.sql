@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     guest_id TEXT UNIQUE NOT NULL,  -- ID после # (например, 423)
     username TEXT NOT NULL DEFAULT 'Гость',  -- Имя пользователя (по умолчанию "Гость")
+    email TEXT,  -- Email пользователя (необязательное поле)
+    email_verified BOOLEAN DEFAULT 0,  -- Флаг подтверждения email
     level INTEGER NOT NULL DEFAULT 0,  -- Уровень пользователя (начинаем с 0)
     xp INTEGER NOT NULL DEFAULT 0,     -- Опыт пользователя
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

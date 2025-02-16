@@ -69,6 +69,43 @@
               </div>
             </div>
           </div>
+
+          <!-- Email -->
+          <div class="setting-group">
+            <label for="email">Email</label>
+            <input 
+              type="email" 
+              id="email" 
+              v-model="email" 
+              placeholder="Введите email"
+              :disabled="isEmailVerified"
+            />
+            <div v-if="!isEmailVerified" class="verification-section">
+              <button 
+                @click="sendVerificationCode" 
+                class="verify-button"
+                :disabled="isCodeSent && timeLeft > 0"
+              >
+                {{ isCodeSent ? `Отправить код (${timeLeft}с)` : 'Подтвердить' }}
+              </button>
+              
+              <div v-if="isCodeSent" class="code-input-section">
+                <input 
+                  type="text" 
+                  v-model="verificationCode" 
+                  placeholder="Введите код"
+                  maxlength="6"
+                  class="code-input"
+                />
+                <button @click="verifyCode" class="verify-button">
+                  Проверить код
+                </button>
+              </div>
+            </div>
+            <div v-else class="verified-badge">
+              ✓ Email подтвержден
+            </div>
+          </div>
         </div>
       </div>
     </Transition>
@@ -88,16 +125,26 @@
     currentNickname: {
       type: String,
       required: true
-    }
+    },
+    currentEmail: String,
+    isEmailVerified: Boolean
   });
   
-  const emit = defineEmits(['close', 'update:nickname', 'update:character']);
+  const emit = defineEmits(['close', 'update:nickname', 'update:character', 'update:email']);
   
   const nickname = ref(props.currentNickname);
   const currentCharacter = ref('');
   const availableCharacters = ref([]);
   const error = ref(null);
-  const loading = ref(false);
+  loading = ref(false);
+  email = ref(props.currentEmail || '');
+  verificationCode = ref('');
+  isCodeSent = ref(false);
+  timeLeft = ref(0);
+  serverCode = ref('');
+  isEmailVerified = ref(props.isEmailVerified);
+  
+  let timer = null;
   
   // Загрузка доступных персонажей
   const loadCharacters = async () => {
@@ -178,10 +225,58 @@
     }
   }
   
+  function startTimer() {
+    timeLeft.value = 60;
+    if (timer) clearInterval(timer);
+    
+    timer = setInterval(() => {
+      if (timeLeft.value > 0) {
+        timeLeft.value--;
+      } else {
+        clearInterval(timer);
+      }
+    }, 1000);
+  }
+  
+  async function sendVerificationCode() {
+    try {
+      const response = await axios.post(`${API_URL}/profile/verify-email`, {
+        email: email.value
+      });
+      
+      if (response.data.success) {
+        isCodeSent.value = true;
+        serverCode.value = response.data.code; // В реальном приложении код не должен возвращаться с сервера
+        startTimer();
+      }
+    } catch (error) {
+      console.error('Error sending verification code:', error);
+    }
+  }
+  
+  async function verifyCode() {
+    try {
+      const response = await axios.post(`${API_URL}/profile/confirm-email`, {
+        email: email.value,
+        code: verificationCode.value
+      });
+      
+      if (response.data.success) {
+        isEmailVerified.value = true;
+        emit('update:email', email.value);
+      } else {
+        alert('Неверный код подтверждения');
+      }
+    } catch (error) {
+      console.error('Error verifying code:', error);
+    }
+  }
+  
   onMounted(() => {
     if (props.isVisible) {
       loadCharacters();
     }
+    if (timer) clearInterval(timer);
   });
   
   // Следим за изменением видимости панели
@@ -427,5 +522,44 @@
     text-align: center;
     padding: 1rem;
     color: rgba(255, 255, 255, 0.7);
+  }
+
+  .verification-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .verify-button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .code-input-section {
+    display: flex;
+    gap: 10px;
+  }
+
+  .code-input {
+    flex: 1;
+    text-align: center;
+    letter-spacing: 5px;
+    font-size: 20px;
+  }
+
+  .verified-badge {
+    color: #4ade80;
+    padding: 8px;
+    background: rgba(74, 222, 128, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
   }
   </style> 

@@ -1,9 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { get, run, all } = require('../db/database');
+const { generateVerificationCode, sendVerificationCode } = require('../services/emailService');
 
 // Конфигурация для URL
 const BASE_URL = process.env.BASE_URL || 'https://your-domain.com';
+
+// Хранилище кодов подтверждения (в реальном приложении лучше использовать Redis)
+const verificationCodes = new Map();
 
 // Получение профиля пользователя
 router.get('/:guestId', async (req, res) => {
@@ -679,6 +683,59 @@ router.post('/:guestId/character', async (req, res) => {
     } catch (error) {
         console.error('Error creating character:', error);
         res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Отправка кода подтверждения email
+router.post('/verify-email', async (req, res) => {
+    try {
+        const { email } = req.body;
+        const code = generateVerificationCode();
+        
+        // Сохраняем код в Map с временем жизни 10 минут
+        verificationCodes.set(email, {
+            code,
+            expires: Date.now() + 600000 // 10 минут
+        });
+        
+        // Отправляем код на email
+        const sent = await sendVerificationCode(email, code);
+        
+        if (sent) {
+            res.json({ success: true });
+        } else {
+            res.status(500).json({ error: 'Failed to send verification code' });
+        }
+    } catch (err) {
+        console.error('Error sending verification code:', err);
+        res.status(500).json({ error: 'Failed to send verification code' });
+    }
+});
+
+// Подтверждение email
+router.post('/confirm-email', async (req, res) => {
+    try {
+        const { email, code, guestId } = req.body;
+        
+        // Проверяем код
+        const storedData = verificationCodes.get(email);
+        if (!storedData || storedData.code !== code || Date.now() > storedData.expires) {
+            return res.json({ success: false, error: 'Invalid or expired code' });
+        }
+        
+        // Обновляем email в базе данных
+        await run(
+            'UPDATE users SET email = ?, email_verified = 1 WHERE guest_id = ?',
+            [email, guestId]
+        );
+        
+        // Удаляем использованный код
+        verificationCodes.delete(email);
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error confirming email:', err);
+        res.status(500).json({ error: 'Failed to confirm email' });
     }
 });
 
