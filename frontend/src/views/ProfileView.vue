@@ -60,7 +60,7 @@
         class="character-image"
         @error="handleImageError"
       />
-      <div class="character-level">{{ level }}</div>
+      <div class="character-level">{{ character.level || 0 }}</div>
       <button class="exchange-button" @click="toggleUpgradePanel">ПРОКАЧАТЬ</button>
     </div>
 
