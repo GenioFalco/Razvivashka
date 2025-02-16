@@ -21,7 +21,7 @@
           </div>
           <button 
             @click="upgradeParameter(param.name)"
-            :disabled="!canUpgradeParameter(param.name) || !hasToken(param.token)"
+            :disabled="!canUpgrade(param.name) || !hasToken(param.token)"
             class="upgrade-button"
           >
             <img :src="getTokenIcon(param.token)" alt="Token" class="token-icon" />
@@ -102,13 +102,6 @@ const upgradeParameter = async (parameter) => {
     }
 
     const data = await response.json();
-    // Обновляем данные сразу после успешного запроса
-    if (data.character) {
-      Object.assign(props.character, data.character);
-    }
-    if (data.tokens) {
-      Object.assign(props.tokens, data.tokens);
-    }
     emit('upgrade', data);
   } catch (error) {
     console.error('Error upgrading parameter:', error);
@@ -136,9 +129,24 @@ const levelUp = async () => {
   }
 };
 
-const canUpgradeParameter = (paramName) => {
-  const currentLevel = props.character?.[`${paramName}_level`] || 0;
-  return currentLevel < props.maxParameterValue;
+const getMaxLevel = computed(() => {
+  // Получаем максимальный уровень параметра в зависимости от уровня персонажа
+  const characterLevel = props.character?.level || 0;
+  const maxLevels = {
+    0: 5,
+    1: 8,
+    2: 11,
+    3: 14,
+    4: 17,
+    5: 20
+  };
+  return maxLevels[characterLevel] || 5;
+});
+
+const canUpgrade = (paramName) => {
+  const paramLevel = props.character[`${paramName}_level`] || 0;
+  const tokenName = parameters.find(p => p.name === paramName)?.token;
+  return hasToken(tokenName) && paramLevel < getMaxLevel.value;
 };
 
 const canLevelUp = computed(() => {
@@ -305,9 +313,9 @@ const maxParameterValue = computed(() => {
   border-radius: 8px;
     cursor: pointer;
   color: white;
-  transition: background-color 0.2s;
-}
-
+    transition: background-color 0.2s;
+  }
+  
 .upgrade-button:hover {
   background: rgba(255, 255, 255, 0.2);
 }
@@ -320,9 +328,9 @@ const maxParameterValue = computed(() => {
 
 .upgrade-button span {
   color: white;
-}
+  }
   
-.token-icon {
+  .token-icon {
   width: 20px;
   height: 20px;
 }

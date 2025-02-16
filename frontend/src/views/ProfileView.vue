@@ -283,8 +283,6 @@ async function updateNickname(newNickname) {
   }
 }
 
-
-
 // Функция для загрузки требований уровней
 async function loadLevelRequirements() {
   try {
