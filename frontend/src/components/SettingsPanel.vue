@@ -136,13 +136,13 @@
   const currentCharacter = ref('');
   const availableCharacters = ref([]);
   const error = ref(null);
-  loading = ref(false);
-  email = ref(props.currentEmail || '');
-  verificationCode = ref('');
-  isCodeSent = ref(false);
-  timeLeft = ref(0);
-  serverCode = ref('');
-  isEmailVerified = ref(props.isEmailVerified);
+  const loading = ref(false);
+  const email = ref(props.currentEmail || '');
+  const verificationCode = ref('');
+  const isCodeSent = ref(false);
+  const timeLeft = ref(0);
+  const serverCode = ref('');
+  const isEmailVerified = ref(props.isEmailVerified);
   
   let timer = null;
   
