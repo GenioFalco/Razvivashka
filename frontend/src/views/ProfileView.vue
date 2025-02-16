@@ -77,7 +77,7 @@
           <img :src="action.icon" :alt="action.name" />
         </button>
       </div>
-
+      
       <!-- Попап с количеством жетонов -->
       <div v-if="isTokenPopupVisible && selectedToken" class="token-popup">
         <div class="token-content">
@@ -139,6 +139,7 @@ import UpgradePanel from '@/components/UpgradePanel.vue'
 import LevelRewardPanel from '@/components/LevelRewardPanel.vue'
 import profileImage from '@/assets/profile.png';
 import { API_URL } from '@/config';
+
 // Состояние для уровня и опыта
 const router = useRouter();
 const level = ref(1);
@@ -150,6 +151,7 @@ const nickname = ref('');
 const loading = ref(true);
 const error = ref(null);
 const profileIcon = ref(profileImage);
+
 // Состояние для жетонов
 const tokens = ref({
   daily: 5,
@@ -160,6 +162,7 @@ const tokens = ref({
   neuro: 5,
   articulation: 5
 });
+
 // Массив кнопок для нижней панели
 const actions = ref([
   { name: "Ежедневные задания", icon: dailyIcon2, token: 'daily' },
@@ -170,19 +173,25 @@ const actions = ref([
   { name: "Нейрогимнастика", icon: neuroIcon, token: 'neuro' },
   { name: "Артикулярная гимнастика", icon: articulationIcon, token: 'articulation' },
 ]);
+
 // Состояние для активной кнопки и попапа
 const activeButtonIndex = ref(0);
 const selectedToken = ref(null);
 const isTokenPopupVisible = ref(false);
+
 // Состояние для настроек
 const isSettingsVisible = ref(false);
+
 // Состояние для панели прокачки
 const isUpgradePanelVisible = ref(false);
+
 // Добавляем состояние для наград
 const levelRewards = ref(null);
 const isLevelRewardVisible = ref(false);
+
 // Добавляем состояние для требований уровней
 const nextLevelRequirements = ref({});
+
 // Обновляем вычисляемые свойства для XP
 const currentLevelXP = computed(() => xp.value);
 const nextLevelXP = computed(() => {
@@ -190,6 +199,7 @@ const nextLevelXP = computed(() => {
   const nextLevel = level.value + 1;
   return nextLevelRequirements.value[nextLevel] || 100;
 });
+
 const xpProgress = computed(() => {
   const currentLevelReq = nextLevelRequirements.value[level.value] || 0;
   const nextLevelReq = nextLevelRequirements.value[level.value + 1] || 100;
@@ -197,14 +207,17 @@ const xpProgress = computed(() => {
   const requiredXP = nextLevelReq - currentLevelReq;
   return (levelXP / requiredXP) * 100;
 });
+
 // Вычисляемые свойства для текущего токена
 const currentTokenIcon = computed(() => {
   return actions.value[activeButtonIndex.value]?.icon || dailyIcon;
 });
+
 const currentTokenCount = computed(() => {
   const tokenType = actions.value[activeButtonIndex.value]?.token;
   return tokens.value[tokenType] || 0;
 });
+
 // Функция для изменения активной кнопки
 const setActiveButton = (index) => {
   activeButtonIndex.value = index;
@@ -212,20 +225,25 @@ const setActiveButton = (index) => {
   selectedToken.value = token;
   
 };
+
 // Функция обмена (пока не реализована)
 function exchange() {
   alert("Функция обмена не реализована!");
 }
+
 // Функции для работы с настройками
 function toggleSettings() {
   isSettingsVisible.value = !isSettingsVisible.value;
 }
+
 function updateCharacter(newCharacterUrl) {
   profileIcon.value = newCharacterUrl;
 }
+
 function toggleUpgradePanel() {
   isUpgradePanelVisible.value = !isUpgradePanelVisible.value;
 }
+
 // Добавляем состояние для персонажа
 const character = ref({
   id: null,
@@ -240,12 +258,12 @@ const character = ref({
   articulation_level: 0,
   activity_level: 0
 });
+
 // Обновляем функцию handleUpgrade
 function handleUpgrade(data) {
   console.log('Получены данные обновления:', data);
   
   if (data.character) {
-    profileIcon.value = data.character.image_url;
     character.value = {
       ...character.value,
       ...data.character
@@ -259,16 +277,8 @@ function handleUpgrade(data) {
       ...data.tokens
     };
   }
-  // Обновляем другие значения, если они есть
-  if (data.coins) {
-    coins.value = data.coins;
-  }
-  if (data.trophies) {
-    trophies.value = data.trophies;
-  }
-  console.log('Updated character:', profileIcon.value);
-  console.log('Updated tokens:', tokens.value);
 }
+
 // Функция обновления никнейма
 async function updateNickname(newNickname) {
   try {
@@ -285,6 +295,7 @@ async function updateNickname(newNickname) {
     error.value = 'Ошибка при обновлении имени';
   }
 }
+
 // Функция для загрузки требований уровней
 async function loadLevelRequirements() {
   try {
@@ -298,6 +309,7 @@ async function loadLevelRequirements() {
     console.error('Error loading level requirements:', err);
   }
 }
+
 // Обновляем функцию loadProfile
 async function loadProfile() {
   try {
@@ -311,7 +323,6 @@ async function loadProfile() {
     }
     
     const response = await axios.get(`${API_URL}/profile/${guestId}`);
-    const { user, character } = response.data;
     const { user, character: characterData } = response.data;
     
     nickname.value = user.username;
@@ -320,8 +331,6 @@ async function loadProfile() {
     coins.value = user.tokens.coins;
     trophies.value = user.tokens.trophy;
     
-    if (character && character.image_url) {
-      profileIcon.value = character.image_url;
     if (characterData) {
       character.value = {
         ...character.value,
@@ -348,10 +357,12 @@ async function loadProfile() {
     loading.value = false;
   }
 }
+
 const handleImageError = () => {
   console.log('Image loading error in profile, using default image');
   profileIcon.value = profileImage;
 };
+
 // Обновляем функцию для добавления XP
 async function addTestXP() {
   try {
@@ -360,6 +371,7 @@ async function addTestXP() {
       console.error('GuestId not found');
       return;
     }
+
     const response = await fetch(`${API_URL}/profile/${guestId}/xp`, {
       method: 'POST',
       headers: {
@@ -367,14 +379,18 @@ async function addTestXP() {
       },
       body: JSON.stringify({ xp: 10 })
     });
+
     if (!response.ok) {
       throw new Error('Failed to add XP');
     }
+
     const data = await response.json();
     console.log('Получены данные:', data);
+
     // Обновляем XP и уровень
     xp.value = data.xp;
     level.value = data.level;
+
     // Если получены награды за новый уровень
     if (data.rewards) {
       console.log('Получены награды:', data.rewards);
@@ -395,6 +411,7 @@ async function addTestXP() {
     console.error('Error:', error);
   }
 }
+
 function collectRewards() {
   console.log('Собираем награды:', levelRewards.value);
   // Начисляем награды только при нажатии кнопки "Забрать"
@@ -412,13 +429,16 @@ function collectRewards() {
   isLevelRewardVisible.value = false;
   levelRewards.value = null;
 }
+
 onMounted(async () => {
   await Promise.all([
     loadProfile(),
     loadLevelRequirements()
   ]);
 });
+
 </script>
+
 <style scoped>
 /* Основной контейнер */
 .profile {
@@ -438,6 +458,7 @@ onMounted(async () => {
   right: 0;
   z-index: 1;
 }
+
 /* Стили для верхней панели */
 header {
   background: rgba(0, 0, 0, 0.2);
@@ -446,6 +467,7 @@ header {
   width: 100%;
   box-sizing: border-box;
 }
+
 .header-content {
   display: flex;
   justify-content: space-between;
@@ -453,21 +475,25 @@ header {
   padding: 0 10px;
   box-sizing: border-box;
 }
+
 /* Стили для информации о пользователе */
 .user-info {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
+
 .profile-mini {
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
 }
+
 .username {
   font-weight: bold;
   font-size: 1.2rem;
 }
+
 /* Стили для кнопки настроек */
 .settings-button {
   background: none;
@@ -476,10 +502,12 @@ header {
   margin-right: -5px;
   cursor: pointer;
 }
+
 .settings-button img {
   width: 1.5rem;
   height: 1.5rem;
 }
+
 /* Стили для верхней панели статистики */
 .stats-bar {
   display: flex;
@@ -494,15 +522,18 @@ header {
   margin-left: auto;
   margin-right: auto;
 }
+
 .token-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
+
 .token-icon {
   width: 1.5rem;
   height: 1.5rem;
 }
+
 /* Стили для индикатора прогресса уровня */
 .level-info {
   text-align: center;
@@ -513,12 +544,14 @@ header {
   margin-left: auto;
   margin-right: auto;
 }
+
 .xp-container {
   display: flex;
   align-items: center;
   gap: 10px;
   margin: 0.5rem 0;
 }
+
 .xp-bar {
   flex: 1;
   height: 0.5rem;
@@ -526,6 +559,7 @@ header {
   border-radius: 1rem;
   overflow: hidden;
 }
+
 .add-xp-button {
   background: #3b82f6;
   color: white;
@@ -536,15 +570,18 @@ header {
   cursor: pointer;
   transition: background-color 0.2s;
 }
+
 .add-xp-button:hover {
   background: #2563eb;
 }
+
 .xp-progress {
   height: 100%;
   background: #3b82f6;
   border-radius: 1rem;
   transition: width 0.3s ease;
 }
+
 /* Стили для контейнера с персонажем */
 .character-container {
   display: flex;
@@ -561,6 +598,7 @@ header {
   margin-top: -15vh;
   pointer-events: none;
 }
+
 .character-image {
   width: clamp(12rem, 40vh, 20rem);
   height: auto;
@@ -572,6 +610,7 @@ header {
   border-radius: 1rem;
   padding: 1rem;
 }
+
 /* Стили для кружка с уровнем */
 .character-level {
   position: absolute;
@@ -590,6 +629,7 @@ header {
   pointer-events: none;
   z-index: 21;
 }
+
 /* Стили для кнопки обмена */
 .exchange-button {
   background: #3b82f6;
@@ -608,9 +648,11 @@ header {
   cursor: pointer;
   pointer-events: auto;
 }
+
 .exchange-button:active {
   transform: scale(0.98);
 }
+
 /* Стили для нижней панели с кнопками */
 .bottom-actions-container {
   position: absolute;
@@ -628,6 +670,7 @@ header {
   box-sizing: border-box;
   overflow: hidden;
 }
+
 .bottom-actions {
   position: absolute;
   bottom: clamp(1rem, 3vh, 2rem);
@@ -644,6 +687,7 @@ header {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
 /* Стили для кнопок действий */
 .action-button {
   background: none;
@@ -662,10 +706,12 @@ header {
   pointer-events: auto;
   margin: 0 2px;
 }
+
 /* Стили для активной кнопки */
 .action-button.active {
   background: rgba(255, 255, 255, 0.2);
 }
+
 /* Индикатор активной кнопки (точка снизу) */
 .action-button.active::after {
   content: '';
@@ -679,38 +725,46 @@ header {
   border-radius: 50%;
   z-index: 3;
 }
+
 /* Эффект при наведении на кнопку */
 .action-button:hover {
   background: rgba(255, 255, 255, 0.1);
 }
+
 /* Размеры иконок в кнопках */
 .action-button img {
   width: clamp(1rem, 3vh, 1.5rem);
   height: clamp(1rem, 3vh, 1.5rem);
   pointer-events: none;
 }
+
 @media (min-width: 768px) {
   .profile {
     width: 100vw;
     max-width: 100vw;
     margin: 0;
   }
+
   .bottom-actions-container {
     width: 100vw;
     margin: 0;
   }
+
   .character-container {
     margin-top: -15vh;
   }
+
   .character-image {
     width: clamp(16rem, 45vh, 24rem);
     margin-bottom: -2%;
   }
+
   .exchange-button {
     padding: clamp(1rem, 3vh, 2rem) clamp(3rem, 6vh, 5rem);
     font-size: clamp(1.2rem, 3vh, 1.6rem);
     margin-top: -4%;
   }
+
   .character-level {
     width: 3rem;
     height: 3rem;
@@ -718,20 +772,25 @@ header {
     right: calc(50% - clamp(6rem, 20vh, 10rem));
   }
 }
+
 @media (min-width: 1200px) {
   .character-container {
     margin-top: -20vh;
   }
+
   .character-image {
     width: clamp(20rem, 50vh, 28rem);
     margin-bottom: -1%;
   }
+
   .bottom-actions-container {
     height: clamp(45vh, 50vh, 55vh);
   }
+
   .exchange-button {
     margin-top: -2%;
   }
+
   .character-level {
     width: 3.5rem;
     height: 3.5rem;
@@ -739,20 +798,25 @@ header {
     right: calc(50% - clamp(7rem, 22vh, 11rem));
   }
 }
+
 @media (max-height: 600px) {
   .character-container {
     margin-top: -3vh;
   }
+
   .character-image {
     width: clamp(10rem, 35vh, 18rem);
   }
+
   .exchange-button {
     padding: clamp(0.5rem, 2vh, 1rem) clamp(1.5rem, 4vh, 3rem);
     font-size: clamp(1rem, 2vh, 1.2rem);
   }
+
   .bottom-actions-container {
     height: 50vh;
   }
+
   .character-level {
     width: 2.5rem;
     height: 2.5rem;
@@ -760,6 +824,7 @@ header {
     right: calc(50% - clamp(5rem, 18vh, 9rem));
   }
 }
+
 /* Стили для индикатора загрузки */
 .loading-indicator {
   position: absolute;
@@ -772,6 +837,7 @@ header {
   font-size: 1.2rem;
   z-index: 100;
 }
+
 /* Стили для сообщений об ошибках */
 .error-message {
   position: fixed;
@@ -787,6 +853,7 @@ header {
   text-align: center;
   max-width: 80%;
 }
+
 /* Стили для попапа с жетонами */
 .token-popup {
   position: absolute;
@@ -802,20 +869,24 @@ header {
   z-index: 100;
   animation: fadeIn 0.3s ease;
 }
+
 .token-content {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
+
 .token-content img {
   width: 2rem;
   height: 2rem;
 }
+
 .token-content span {
   font-size: 1.5rem;
   font-weight: bold;
   color: white;
 }
+
 @keyframes fadeIn {
   from {
     opacity: 0;
