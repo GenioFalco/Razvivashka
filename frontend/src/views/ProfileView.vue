@@ -59,7 +59,7 @@
         class="character-image"
         @error="handleImageError"
       />
-      <div class="character-level">{{ character?.level || level }}</div>
+      <div class="character-level">{{ level }}</div>
       <button class="exchange-button" @click="toggleUpgradePanel">ПРОКАЧАТЬ</button>
     </div>
 
@@ -346,6 +346,55 @@ const handleImageError = () => {
   profileIcon.value = profileImage;
 };
 
+// Обновляем функцию для добавления XP
+async function addTestXP() {
+  try {
+    const guestId = localStorage.getItem('guestId');
+    if (!guestId) {
+      console.error('GuestId not found');
+      return;
+    }
+
+    const response = await fetch(`${API_URL}/profile/${guestId}/xp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ xp: 10 })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to add XP');
+    }
+
+    const data = await response.json();
+    console.log('Получены данные:', data);
+
+    // Обновляем XP и уровень
+    xp.value = data.xp;
+    level.value = data.level;
+
+    // Если получены награды за новый уровень
+    if (data.rewards) {
+      console.log('Получены награды:', data.rewards);
+      // Показываем панель с наградами, НО пока не начисляем их
+      levelRewards.value = {
+        level: data.level,
+        coins: data.rewards.coins,
+        trophyTokens: data.rewards.trophy_tokens,
+        character: data.rewards.character
+      };
+      isLevelRewardVisible.value = true;
+    } else {
+      // Если наград нет, просто обновляем токены
+      coins.value = data.tokens.coins;
+      trophies.value = data.tokens.trophy_tokens;
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
 function collectRewards() {
   console.log('Собираем награды:', levelRewards.value);
   // Начисляем награды только при нажатии кнопки "Забрать"
@@ -494,6 +543,21 @@ header {
   overflow: hidden;
 }
 
+.add-xp-button {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-xp-button:hover {
+  background: #2563eb;
+}
+
 .xp-progress {
   height: 100%;
   background: #3b82f6;
@@ -503,37 +567,50 @@ header {
 
 /* Стили для контейнера с персонажем */
 .character-container {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  margin: 1rem 0;
+  gap: 0;
+  padding: 0;
+  flex: 1;
+  justify-content: center;
+  width: 100%;
+  margin: 0 auto;
+  position: relative;
+  z-index: 20;
+  margin-top: -15vh;
+  pointer-events: none;
 }
 
 .character-image {
-  width: 200px;
-  height: 200px;
+  width: clamp(12rem, 40vh, 20rem);
+  height: auto;
   object-fit: contain;
+  position: relative;
+  z-index: 20;
+  margin-bottom: -5%;
+  pointer-events: none;
+  border-radius: 1rem;
+  padding: 1rem;
 }
 
+/* Стили для кружка с уровнем */
 .character-level {
   position: absolute;
-  top: 0;
-  right: 50%;
-  transform: translateX(100px);
-  width: 30px;
-  height: 30px;
-  background-color: #ff4444;
-  border: 2px solid white;
+  top: 35%;
+  right: calc(50% - clamp(5rem, 18vh, 9rem));
+  width: 2.5rem;
+  height: 2.5rem;
+  background: rgba(0, 0, 0, 0.4);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
   font-weight: bold;
-  font-size: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 1.2rem;
+  color: white;
+  pointer-events: none;
+  z-index: 21;
 }
 
 /* Стили для кнопки обмена */
