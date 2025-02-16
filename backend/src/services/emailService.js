@@ -3,8 +3,8 @@ const nodemailer = require('nodemailer');
 // Создаем транспорт для отправки почты
 const transporter = nodemailer.createTransport({
     host: "smtp.mail.ru",
-    port: 465,
-    secure: true,
+    port: 25,
+    secure: false,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD
