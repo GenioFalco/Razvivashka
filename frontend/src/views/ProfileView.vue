@@ -34,10 +34,9 @@
     <div class="level-info">
       <span>Уровень {{ level }}</span>
       <div class="xp-container">
-      <div class="xp-bar">
-        <div class="xp-progress" :style="{ width: xpProgress + '%' }"></div>
+        <div class="xp-bar">
+          <div class="xp-progress" :style="{ width: xpProgress + '%' }"></div>
         </div>
-        <button class="add-xp-button" @click="addTestXP">+10 XP</button>
       </div>
       <span class="xp-text">XP {{ currentLevelXP }}/{{ nextLevelXP }}</span>
     </div>
@@ -54,13 +53,14 @@
 
     <!-- Контейнер с персонажем и кнопкой прокачки -->
     <div v-else class="character-container">
-      <div class="profile-container">
-        <div class="profile-icon-container">
-          <img :src="profileIcon" alt="Profile" class="profile-icon" />
-          <div class="level-badge">{{ character.level || 0 }}</div>
-        </div>
-        <button class="upgrade-button" @click="toggleUpgradePanel">ПРОКАЧАТЬ</button>
-      </div>
+      <img 
+        :src="profileIcon" 
+        alt="Character" 
+        class="character-image"
+        @error="handleImageError"
+      />
+      <div class="character-level">{{ character?.level || level }}</div>
+      <button class="exchange-button" @click="toggleUpgradePanel">ПРОКАЧАТЬ</button>
     </div>
 
     <!-- Нижняя панель с кнопками действий -->
@@ -150,6 +150,7 @@ const nickname = ref('');
 const loading = ref(true);
 const error = ref(null);
 const profileIcon = ref(profileImage);
+const character = ref(null);
 
 // Состояние для жетонов
 const tokens = ref({
@@ -243,39 +244,25 @@ function toggleUpgradePanel() {
   isUpgradePanelVisible.value = !isUpgradePanelVisible.value;
 }
 
-// Добавляем состояние для персонажа
-const character = ref({
-  id: null,
-  name: 'Default Character',
-  level: 0,
-  image_url: profileImage,
-  creativity_level: 0,
-  intelligence_level: 0,
-  wit_level: 0,
-  energy_level: 0,
-  focus_level: 0,
-  articulation_level: 0,
-  activity_level: 0
-});
-
-// Обновляем функцию handleUpgrade
 function handleUpgrade(data) {
-  console.log('Получены данные обновления:', data);
-  
   if (data.character) {
-    character.value = {
-      ...character.value,
-      ...data.character
-    };
-    profileIcon.value = data.character.image_url || profileImage;
+    profileIcon.value = data.character.image_url;
   }
-  
   if (data.tokens) {
     tokens.value = {
       ...tokens.value,
       ...data.tokens
     };
   }
+  // Обновляем другие значения, если они есть
+  if (data.coins) {
+    coins.value = data.coins;
+  }
+  if (data.trophies) {
+    trophies.value = data.trophies;
+  }
+  console.log('Updated character:', profileIcon.value);
+  console.log('Updated tokens:', tokens.value);
 }
 
 // Функция обновления никнейма
@@ -309,49 +296,55 @@ async function loadLevelRequirements() {
   }
 }
 
-// Обновляем функцию loadProfile
+// Функция загрузки профиля
 async function loadProfile() {
   try {
     loading.value = true;
     error.value = null;
+    const guestId = localStorage.getItem('guestId');
     
-    let guestId = localStorage.getItem('guestId');
     if (!guestId) {
-      guestId = Math.floor(Math.random() * 1000000).toString();
-      localStorage.setItem('guestId', guestId);
+      error.value = 'Ошибка: ID пользователя не найден';
+      return;
     }
-    
+
     const response = await axios.get(`${API_URL}/profile/${guestId}`);
-    const { user, character: characterData } = response.data;
-    
-    nickname.value = user.username;
-    level.value = user.level;
-    xp.value = user.xp;
-    coins.value = user.tokens.coins;
-    trophies.value = user.tokens.trophy;
-    
+    const { user, characterData } = response.data;
+
     if (characterData) {
-      character.value = {
-        ...character.value,
-        ...characterData
-      };
-      profileIcon.value = characterData.image_url || profileImage;
+      character.value = characterData;
+      if (characterData.image_url) {
+        profileIcon.value = characterData.image_url;
+      }
+      level.value = characterData.level || 1;
     }
-    
-    // Обновляем токены из того же ответа
-    tokens.value = {
-      daily: user.tokens.daily,
-      creativity: user.tokens.creativity,
-      rebus: user.tokens.wit,
-      riddles: user.tokens.intelligence,
-      tongueTwister: user.tokens.focus,
-      neuro: user.tokens.energy,
-      articulation: user.tokens.articulation
-    };
+
+    if (user) {
+      nickname.value = user.nickname || '';
+      xp.value = user.xp || 0;
+      coins.value = user.coins || 0;
+      trophies.value = user.trophy_tokens || 0;
+      
+      if (user.tokens) {
+        tokens.value = {
+          daily: user.tokens.daily || 0,
+          creativity: user.tokens.creativity || 0,
+          rebus: user.tokens.rebus || 0,
+          riddles: user.tokens.riddles || 0,
+          tongueTwister: user.tokens.tongueTwister || 0,
+          neuro: user.tokens.neuro || 0,
+          articulation: user.tokens.articulation || 0
+        };
+      }
+    }
+
+    // Загружаем требования для уровней
+    const levelsResponse = await axios.get(`${API_URL}/levels`);
+    nextLevelRequirements.value = levelsResponse.data;
     
   } catch (err) {
     console.error('Error loading profile:', err);
-    error.value = 'Ошибка при загрузке профиля';
+    error.value = 'Ошибка загрузки профиля';
   } finally {
     loading.value = false;
   }
@@ -361,55 +354,6 @@ const handleImageError = () => {
   console.log('Image loading error in profile, using default image');
   profileIcon.value = profileImage;
 };
-
-// Обновляем функцию для добавления XP
-async function addTestXP() {
-  try {
-    const guestId = localStorage.getItem('guestId');
-    if (!guestId) {
-      console.error('GuestId not found');
-      return;
-    }
-
-    const response = await fetch(`${API_URL}/profile/${guestId}/xp`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ xp: 10 })
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to add XP');
-    }
-
-    const data = await response.json();
-    console.log('Получены данные:', data);
-
-    // Обновляем XP и уровень
-    xp.value = data.xp;
-    level.value = data.level;
-
-    // Если получены награды за новый уровень
-    if (data.rewards) {
-      console.log('Получены награды:', data.rewards);
-      // Показываем панель с наградами, НО пока не начисляем их
-      levelRewards.value = {
-        level: data.level,
-        coins: data.rewards.coins,
-        trophyTokens: data.rewards.trophy_tokens,
-        character: data.rewards.character
-      };
-      isLevelRewardVisible.value = true;
-    } else {
-      // Если наград нет, просто обновляем токены
-      coins.value = data.tokens.coins;
-      trophies.value = data.tokens.trophy_tokens;
-    }
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
 
 function collectRewards() {
   console.log('Собираем награды:', levelRewards.value);
@@ -559,21 +503,6 @@ header {
   overflow: hidden;
 }
 
-.add-xp-button {
-  background: #3b82f6;
-  color: white;
-  border: none;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.add-xp-button:hover {
-  background: #2563eb;
-}
-
 .xp-progress {
   height: 100%;
   background: #3b82f6;
@@ -583,63 +512,41 @@ header {
 
 /* Стили для контейнера с персонажем */
 .character-container {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
-  padding: 0;
-  flex: 1;
-  justify-content: center;
-  width: 100%;
-  margin: 0 auto;
-  position: relative;
-  z-index: 20;
-  margin-top: -15vh;
-  pointer-events: none;
+  gap: 1rem;
+  margin: 1rem 0;
 }
 
-.profile-container {
-  position: relative;
-  display: inline-block;
-}
-
-.profile-icon-container {
-  position: relative;
-  display: inline-block;
-}
-
-.profile-icon {
-  width: clamp(12rem, 40vh, 20rem);
-  height: auto;
+.character-image {
+  width: 200px;
+  height: 200px;
   object-fit: contain;
-  position: relative;
-  z-index: 20;
-  margin-bottom: -5%;
-  pointer-events: none;
-  border-radius: 1rem;
-  padding: 1rem;
 }
 
-/* Стили для кружка с уровнем */
-.level-badge {
+.character-level {
   position: absolute;
   top: 0;
-  right: 0;
-  background-color: #ff4444;
-  color: white;
-  border-radius: 50%;
+  right: 50%;
+  transform: translateX(100px);
   width: 30px;
   height: 30px;
+  background-color: #ff4444;
+  border: 2px solid white;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: white;
   font-weight: bold;
   font-size: 16px;
-  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Стили для кнопки обмена */
-.upgrade-button {
+.exchange-button {
   background: #3b82f6;
   color: white;
   border: none;
@@ -657,7 +564,7 @@ header {
   pointer-events: auto;
 }
 
-.upgrade-button:active {
+.exchange-button:active {
   transform: scale(0.98);
 }
 
@@ -762,21 +669,22 @@ header {
     margin-top: -15vh;
   }
 
-  .profile-icon {
+  .character-image {
     width: clamp(16rem, 45vh, 24rem);
     margin-bottom: -2%;
   }
 
-  .upgrade-button {
+  .exchange-button {
     padding: clamp(1rem, 3vh, 2rem) clamp(3rem, 6vh, 5rem);
     font-size: clamp(1.2rem, 3vh, 1.6rem);
     margin-top: -4%;
   }
 
-  .level-badge {
+  .character-level {
     width: 3rem;
     height: 3rem;
     font-size: 1.4rem;
+    right: calc(50% - clamp(6rem, 20vh, 10rem));
   }
 }
 
@@ -785,7 +693,7 @@ header {
     margin-top: -20vh;
   }
 
-  .profile-icon {
+  .character-image {
     width: clamp(20rem, 50vh, 28rem);
     margin-bottom: -1%;
   }
@@ -794,14 +702,15 @@ header {
     height: clamp(45vh, 50vh, 55vh);
   }
 
-  .upgrade-button {
+  .exchange-button {
     margin-top: -2%;
   }
 
-  .level-badge {
+  .character-level {
     width: 3.5rem;
     height: 3.5rem;
     font-size: 1.6rem;
+    right: calc(50% - clamp(7rem, 22vh, 11rem));
   }
 }
 
@@ -810,11 +719,11 @@ header {
     margin-top: -3vh;
   }
 
-  .profile-icon {
+  .character-image {
     width: clamp(10rem, 35vh, 18rem);
   }
 
-  .upgrade-button {
+  .exchange-button {
     padding: clamp(0.5rem, 2vh, 1rem) clamp(1.5rem, 4vh, 3rem);
     font-size: clamp(1rem, 2vh, 1.2rem);
   }
@@ -823,10 +732,11 @@ header {
     height: 50vh;
   }
 
-  .level-badge {
+  .character-level {
     width: 2.5rem;
     height: 2.5rem;
     font-size: 1.2rem;
+    right: calc(50% - clamp(5rem, 18vh, 9rem));
   }
 }
 
