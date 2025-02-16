@@ -300,20 +300,36 @@ async function loadLevelRequirements() {
 }
 
 // Обновляем функцию loadProfile
-async function loadProfile() {
+const loadProfile = async () => {
+  loading.value = true;
+  error.value = null;
+
   try {
-    loading.value = true;
-    error.value = null;
-    
-    let guestId = localStorage.getItem('guestId');
+    const guestId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
     if (!guestId) {
-      guestId = Math.floor(Math.random() * 1000000).toString();
-      localStorage.setItem('guestId', guestId);
+      error.value = 'Ошибка: ID пользователя не найден';
+      loading.value = false;
+      return;
     }
 
     const response = await axios.get(`${API_URL}/profile/${guestId}`);
-    const { user, character: characterData } = response.data;
-    
+    const { user, characterData, tokens: userTokens } = response.data;
+
+    // Обновляем данные пользователя
+    if (user) {
+      nickname.value = user.username || 'Гость';
+      level.value = user.level || 1;
+      xp.value = user.xp || 0;
+    }
+
+    // Обновляем токены
+    if (userTokens) {
+      coins.value = userTokens.coins || 0;
+      tokens.value = userTokens.trophy_tokens || 0;
+      trophies.value = userTokens.trophy_tokens || 0;
+    }
+
+    // Обновляем данные персонажа
     if (characterData) {
       character.value = characterData;
       if (characterData.image_url) {
@@ -321,33 +337,16 @@ async function loadProfile() {
       }
     }
 
-    if (user) {
-      nickname.value = user.nickname || '';
-      level.value = user.level || 1;
-      xp.value = user.xp || 0;
-      coins.value = user.coins || 0;
-      trophies.value = user.trophy_tokens || 0;
-      
-      if (user.tokens) {
-        tokens.value = {
-          daily: user.tokens.daily || 0,
-          creativity: user.tokens.creativity || 0,
-          rebus: user.tokens.rebus || 0,
-          riddles: user.tokens.riddles || 0,
-          tongueTwister: user.tokens.tongueTwister || 0,
-          neuro: user.tokens.neuro || 0,
-          articulation: user.tokens.articulation || 0
-        };
-      }
-    }
+    // Загружаем требования для текущего уровня
+    await loadLevelRequirements();
     
   } catch (err) {
-    console.error('Error loading profile:', err);
+    console.error('Ошибка при загрузке профиля:', err);
     error.value = 'Ошибка при загрузке профиля';
   } finally {
     loading.value = false;
   }
-}
+};
 
 const handleImageError = () => {
   console.log('Image loading error in profile, using default image');
