@@ -11,8 +11,8 @@ if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
 // Создаем транспорт для отправки почты
 const transporter = nodemailer.createTransport({
     host: "smtp.mail.ru",
-    port: 25,
-    secure: false,
+    port: 465,
+    secure: true,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD
@@ -79,4 +79,4 @@ async function sendVerificationCode(email, code) {
 module.exports = {
     generateVerificationCode,
     sendVerificationCode
-}; 
+};

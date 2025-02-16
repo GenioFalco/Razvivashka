@@ -1,14 +1,7 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const profileRoutes = require('./routes/profile');
 const levelsRoutes = require('./routes/levels');
-
-// Добавляем проверку переменных окружения
-console.log('Environment variables check:');
-console.log('EMAIL_USER:', process.env.EMAIL_USER);
-console.log('EMAIL_PASSWORD:', '[hidden]');
-console.log('BASE_URL:', process.env.BASE_URL);
 
 const app = express();
 const port = process.env.PORT || 3000;
