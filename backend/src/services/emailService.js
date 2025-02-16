@@ -19,6 +19,18 @@ function generateVerificationCode() {
 // Отправка кода подтверждения
 async function sendVerificationCode(email, code) {
     try {
+        console.log('Preparing to send email to:', email);
+        console.log('Using SMTP configuration:', {
+            host: "smtp.mail.ru",
+            port: 465,
+            secure: true,
+            auth: {
+                user: process.env.EMAIL_USER,
+                // Не логируем пароль в целях безопасности
+                pass: '********'
+            }
+        });
+
         const info = await transporter.sendMail({
             from: `"Razvivashka" <${process.env.EMAIL_USER}>`,
             to: email,
@@ -33,9 +45,16 @@ async function sendVerificationCode(email, code) {
                 </div>
             `
         });
+        console.log('Email sent successfully:', info.messageId);
         return true;
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('Detailed error sending email:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            code: error.code,
+            command: error.command
+        });
         return false;
     }
 }

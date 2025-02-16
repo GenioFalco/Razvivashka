@@ -689,26 +689,40 @@ router.post('/:guestId/character', async (req, res) => {
 // Отправка кода подтверждения email
 router.post('/verify-email', async (req, res) => {
     try {
+        console.log('Received verify-email request:', req.body);
         const { email } = req.body;
+        
+        if (!email) {
+            console.log('No email provided in request');
+            return res.status(400).json({ error: 'Email is required' });
+        }
+
+        console.log('Generating verification code for email:', email);
         const code = generateVerificationCode();
+        console.log('Generated code:', code);
         
         // Сохраняем код в Map с временем жизни 10 минут
         verificationCodes.set(email, {
             code,
             expires: Date.now() + 600000 // 10 минут
         });
+        console.log('Saved code in verificationCodes map');
         
         // Отправляем код на email
+        console.log('Attempting to send verification code...');
         const sent = await sendVerificationCode(email, code);
+        console.log('Email sending result:', sent);
         
         if (sent) {
+            console.log('Successfully sent verification code');
             res.json({ success: true });
         } else {
+            console.log('Failed to send verification code');
             res.status(500).json({ error: 'Failed to send verification code' });
         }
     } catch (err) {
-        console.error('Error sending verification code:', err);
-        res.status(500).json({ error: 'Failed to send verification code' });
+        console.error('Error in verify-email route:', err);
+        res.status(500).json({ error: 'Failed to send verification code', details: err.message });
     }
 });
 
