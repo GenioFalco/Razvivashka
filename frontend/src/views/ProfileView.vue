@@ -368,47 +368,41 @@ async function addTestXP() {
   try {
     const guestId = localStorage.getItem('guestId');
     if (!guestId) {
-      console.error('GuestId not found');
+      error.value = 'Ошибка: ID пользователя не найден';
       return;
     }
 
-    const response = await fetch(`${API_URL}/profile/${guestId}/xp`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ xp: 10 })
+    const response = await axios.post(`${API_URL}/profile/${guestId}/xp`, {
+      xp: 10
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to add XP');
-    }
-
-    const data = await response.json();
-    console.log('Получены данные:', data);
+    console.log('Получены данные:', response.data);
 
     // Обновляем XP и уровень
-    xp.value = data.xp;
-    level.value = data.level;
+    xp.value = response.data.xp;
+    level.value = response.data.level;
 
     // Если получены награды за новый уровень
-    if (data.rewards) {
-      console.log('Получены награды:', data.rewards);
-      // Показываем панель с наградами, НО пока не начисляем их
+    if (response.data.rewards) {
+      console.log('Получены награды:', response.data.rewards);
+      // Показываем панель с наградами
       levelRewards.value = {
-        level: data.level,
-        coins: data.rewards.coins,
-        trophyTokens: data.rewards.trophy_tokens,
-        character: data.rewards.character
+        level: response.data.level,
+        coins: response.data.rewards.coins,
+        trophyTokens: response.data.rewards.trophy_tokens,
+        character: response.data.rewards.character
       };
       isLevelRewardVisible.value = true;
     } else {
       // Если наград нет, просто обновляем токены
-      coins.value = data.tokens.coins;
-      trophies.value = data.tokens.trophy_tokens;
+      if (response.data.tokens) {
+        coins.value = response.data.tokens.coins;
+        trophies.value = response.data.tokens.trophy_tokens;
+      }
     }
-  } catch (error) {
-    console.error('Error:', error);
+  } catch (err) {
+    console.error('Ошибка при добавлении XP:', err);
+    error.value = 'Ошибка при добавлении XP. Пожалуйста, попробуйте позже.';
   }
 }
 
