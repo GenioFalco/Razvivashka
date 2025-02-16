@@ -155,7 +155,7 @@ const canLevelUp = computed(() => {
   // Проверяем, что все параметры достигли максимального уровня
   const allParametersMaxed = parameters.every(param => {
     const paramLevel = props.character[`${param.name}_level`] || 0;
-    return paramLevel >= props.maxParameterValue;
+    return paramLevel >= getMaxLevel.value;
   });
   
   // Проверяем, что уровень персонажа меньше 10
@@ -182,12 +182,20 @@ const getTokenIcon = (tokenName) => {
 
 const getProgressWidth = (paramName) => {
   const currentLevel = props.character?.[`${paramName}_level`] || 0;
-  return `${(currentLevel / props.maxParameterValue) * 100}%`;
+  return `${(currentLevel / getMaxLevel.value) * 100}%`;
 };
 
 const maxParameterValue = computed(() => {
-  if (!props.character) return 5;
-  return props.character.max_parameter_value || 5;
+  const characterLevel = props.character?.level || 0;
+  const maxLevels = {
+    0: 5,
+    1: 8,
+    2: 11,
+    3: 14,
+    4: 17,
+    5: 20
+  };
+  return maxLevels[characterLevel] || 5;
 });
   </script>
   

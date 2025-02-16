@@ -246,24 +246,30 @@ function toggleUpgradePanel() {
 }
 
 function handleUpgrade(data) {
+  console.log('Получены данные обновления:', data);
+  
   if (data.character) {
-    profileIcon.value = data.character.image_url;
+    character.value = data.character;
+    profileIcon.value = data.character.image_url || defaultProfileIcon;
   }
+  
   if (data.tokens) {
     tokens.value = {
       ...tokens.value,
       ...data.tokens
     };
   }
-  // Обновляем другие значения, если они есть
-  if (data.coins) {
-    coins.value = data.coins;
+  
+  if (data.level !== undefined) {
+    level.value = data.level;
   }
-  if (data.trophies) {
-    trophies.value = data.trophies;
+  
+  if (data.xp !== undefined) {
+    xp.value = data.xp;
   }
-  console.log('Updated character:', profileIcon.value);
-  console.log('Updated tokens:', tokens.value);
+  
+  // Обновляем требования уровня при изменении уровня
+  loadLevelRequirements();
 }
 
 // Функция обновления никнейма
@@ -303,38 +309,44 @@ async function loadProfile() {
     loading.value = true;
     error.value = null;
     
-    let guestId = localStorage.getItem('guestId');
+    const guestId = localStorage.getItem('guestId');
     if (!guestId) {
-      guestId = Math.floor(Math.random() * 1000000).toString();
-      localStorage.setItem('guestId', guestId);
+      console.error('GuestId not found');
+      return;
     }
     
-    const response = await axios.get(`${API_URL}/profile/${guestId}`);
-    const { user, character: characterData } = response.data;
-    
-    nickname.value = user.username;
-    level.value = user.level;
-    xp.value = user.xp;
-    coins.value = user.tokens.coins;
-    trophies.value = user.tokens.trophy;
-    
-    if (characterData) {
-      character.value = characterData;
-      if (characterData.image_url) {
-        profileIcon.value = characterData.image_url;
-      }
+    const response = await fetch(`${API_URL}/profile/${guestId}`);
+    if (!response.ok) {
+      throw new Error('Failed to load profile');
     }
     
-    // Обновляем токены из того же ответа
-    tokens.value = {
-      daily: user.tokens.daily,
-      creativity: user.tokens.creativity,
-      rebus: user.tokens.wit,
-      riddles: user.tokens.intelligence,
-      tongueTwister: user.tokens.focus,
-      neuro: user.tokens.energy,
-      articulation: user.tokens.articulation
-    };
+    const data = await response.json();
+    console.log('Загружены данные профиля:', data);
+    
+    // Обновляем все данные профиля
+    nickname.value = data.username;
+    level.value = data.level;
+    xp.value = data.xp;
+    
+    if (data.character) {
+      character.value = data.character;
+      profileIcon.value = data.character.image_url || defaultProfileIcon;
+    }
+    
+    if (data.tokens) {
+      tokens.value = {
+        daily: data.tokens.daily || 0,
+        creativity: data.tokens.creativity || 0,
+        rebus: data.tokens.wit || 0,
+        riddles: data.tokens.intelligence || 0,
+        tongueTwister: data.tokens.focus || 0,
+        neuro: data.tokens.energy || 0,
+        articulation: data.tokens.articulation || 0
+      };
+    }
+    
+    // Загружаем требования уровня
+    await loadLevelRequirements();
     
   } catch (err) {
     console.error('Error loading profile:', err);
