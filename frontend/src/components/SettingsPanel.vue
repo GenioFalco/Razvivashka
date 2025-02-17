@@ -81,24 +81,34 @@
               :disabled="isEmailVerified"
             />
             <div v-if="!isEmailVerified" class="verification-section">
-              <button 
-                @click="sendVerificationCode" 
-                class="verify-button"
-                :disabled="isCodeSent && timeLeft > 0"
-              >
-                {{ isCodeSent ? `Отправить код (${timeLeft}с)` : 'Подтвердить' }}
-              </button>
+              <div v-if="!isCodeSent">
+                <button 
+                  @click="sendVerificationCode" 
+                  class="verify-button"
+                >
+                  Подтвердить
+                </button>
+              </div>
               
-              <div v-if="isCodeSent" class="code-input-section">
-                <input 
-                  type="text" 
-                  v-model="verificationCode" 
-                  placeholder="Введите код"
-                  maxlength="6"
-                  class="code-input"
-                />
-                <button @click="verifyCode" class="verify-button">
-                  Проверить код
+              <div v-else class="verification-controls">
+                <div class="code-input-section">
+                  <input 
+                    type="text" 
+                    v-model="verificationCode" 
+                    placeholder="Введите код"
+                    maxlength="6"
+                    class="code-input"
+                  />
+                  <button @click="verifyCode" class="verify-button">
+                    Проверить
+                  </button>
+                </div>
+                <button 
+                  @click="sendVerificationCode" 
+                  class="resend-button"
+                  :disabled="timeLeft > 0"
+                >
+                  {{ timeLeft > 0 ? `Отправить код повторно (${timeLeft}с)` : 'Отправить код повторно' }}
                 </button>
               </div>
             </div>
@@ -547,10 +557,32 @@
     cursor: not-allowed;
   }
 
+  .verification-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .resend-button {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+  }
+
+  .resend-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   .code-input-section {
     display: flex;
     gap: 10px;
-    margin-top: 10px;
   }
 
   .code-input {
