@@ -686,70 +686,101 @@ router.post('/:guestId/character', async (req, res) => {
     }
 });
 
-// Отправка кода подтверждения email
+// Маршрут для отправки кода подтверждения
 router.post('/verify-email', async (req, res) => {
     try {
-        console.log('Received verify-email request:', req.body);
         const { email } = req.body;
         
         if (!email) {
-            console.log('No email provided in request');
-            return res.status(400).json({ error: 'Email is required' });
+            return res.status(400).json({ error: 'Email не указан' });
         }
 
-        console.log('Generating verification code for email:', email);
+        // Проверка формата email
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailPattern.test(email)) {
+            return res.status(400).json({ error: 'Неверный формат email' });
+        }
+
+        // Генерируем код подтверждения
         const code = generateVerificationCode();
-        console.log('Generated code:', code);
+        console.log('Generated verification code:', code);
         
-        // Сохраняем код в Map с временем жизни 10 минут
+        // Сохраняем код в памяти
         verificationCodes.set(email, {
             code,
-            expires: Date.now() + 600000 // 10 минут
+            timestamp: Date.now(),
+            attempts: 0
         });
-        console.log('Saved code in verificationCodes map');
-        
-        // Отправляем код на email
-        console.log('Attempting to send verification code...');
-        const sent = await sendVerificationCode(email, code);
-        console.log('Email sending result:', sent);
-        
-        if (sent) {
-            console.log('Successfully sent verification code');
-            res.json({ success: true });
-        } else {
-            console.log('Failed to send verification code');
-            res.status(500).json({ error: 'Failed to send verification code' });
+
+        // Отправляем код
+        try {
+            await sendVerificationCode(email, code);
+            console.log('Verification code sent successfully');
+            res.json({ message: 'Код подтверждения отправлен' });
+        } catch (emailError) {
+            console.error('Failed to send verification code:', emailError);
+            verificationCodes.delete(email);
+            res.status(500).json({ 
+                error: 'Ошибка отправки кода подтверждения',
+                details: emailError.message
+            });
         }
-    } catch (err) {
-        console.error('Error in verify-email route:', err);
-        res.status(500).json({ error: 'Failed to send verification code', details: err.message });
+
+    } catch (error) {
+        console.error('Error in verify-email route:', error);
+        res.status(500).json({ 
+            error: 'Внутренняя ошибка сервера',
+            details: error.message
+        });
     }
 });
 
-// Подтверждение email
+// Маршрут для подтверждения кода
 router.post('/confirm-email', async (req, res) => {
     try {
-        const { email, code, guestId } = req.body;
-        
-        // Проверяем код
-        const storedData = verificationCodes.get(email);
-        if (!storedData || storedData.code !== code || Date.now() > storedData.expires) {
-            return res.json({ success: false, error: 'Invalid or expired code' });
+        const { email, code } = req.body;
+
+        if (!email || !code) {
+            return res.status(400).json({ error: 'Email и код подтверждения обязательны' });
         }
-        
-        // Обновляем email в базе данных
-        await run(
-            'UPDATE users SET email = ?, email_verified = 1 WHERE guest_id = ?',
-            [email, guestId]
-        );
+
+        const verification = verificationCodes.get(email);
+        if (!verification) {
+            return res.status(400).json({ error: 'Код подтверждения истек или не был отправлен' });
+        }
+
+        // Проверяем количество попыток
+        if (verification.attempts >= 3) {
+            verificationCodes.delete(email);
+            return res.status(400).json({ error: 'Превышено количество попыток' });
+        }
+
+        // Проверяем время действия кода (10 минут)
+        if (Date.now() - verification.timestamp > 10 * 60 * 1000) {
+            verificationCodes.delete(email);
+            return res.status(400).json({ error: 'Код подтверждения истек' });
+        }
+
+        // Проверяем код
+        if (verification.code !== code) {
+            verification.attempts++;
+            return res.status(400).json({ error: 'Неверный код подтверждения' });
+        }
+
+        // Обновляем статус подтверждения email в базе данных
+        await run('UPDATE users SET email_verified = 1 WHERE email = ?', [email]);
         
         // Удаляем использованный код
         verificationCodes.delete(email);
-        
-        res.json({ success: true });
-    } catch (err) {
-        console.error('Error confirming email:', err);
-        res.status(500).json({ error: 'Failed to confirm email' });
+
+        res.json({ message: 'Email успешно подтвержден' });
+
+    } catch (error) {
+        console.error('Error in confirm-email:', error);
+        res.status(500).json({ 
+            error: 'Внутренняя ошибка сервера',
+            details: error.message
+        });
     }
 });
 

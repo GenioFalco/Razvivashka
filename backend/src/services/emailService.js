@@ -4,14 +4,25 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
     host: "smtp.mail.ru",
     port: 465,
-    secure: true, // используем SSL/TLS
+    secure: true, // используем SSL
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD
-    },
-    tls: {
-        // Не проверяем сертификат
-        rejectUnauthorized: false
+    }
+});
+
+// Проверяем соединение при запуске
+transporter.verify(function(error, success) {
+    if (error) {
+        console.error('SMTP connection error:', error);
+        console.error('SMTP settings:', {
+            host: "smtp.mail.ru",
+            port: 465,
+            secure: true,
+            user: process.env.EMAIL_USER
+        });
+    } else {
+        console.log('SMTP server is ready to take our messages');
     }
 });
 
@@ -25,7 +36,7 @@ async function sendVerificationCode(email, code) {
     try {
         console.log('Preparing to send email to:', email);
 
-        const info = await transporter.sendMail({
+        const mailOptions = {
             from: `"Razvivashka" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: "Код подтверждения",
@@ -38,7 +49,9 @@ async function sendVerificationCode(email, code) {
                     <p>Если вы не запрашивали этот код, просто проигнорируйте это письмо.</p>
                 </div>
             `
-        });
+        };
+
+        const info = await transporter.sendMail(mailOptions);
         console.log('Email sent successfully:', info.messageId);
         return true;
     } catch (error) {
@@ -46,9 +59,10 @@ async function sendVerificationCode(email, code) {
             name: error.name,
             message: error.message,
             code: error.code,
-            command: error.command
+            command: error.command,
+            stack: error.stack
         });
-        return false;
+        throw error; // Пробрасываем ошибку дальше для обработки в маршруте
     }
 }
 
