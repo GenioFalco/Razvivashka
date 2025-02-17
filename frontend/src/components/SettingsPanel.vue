@@ -73,49 +73,42 @@
           <!-- Email -->
           <div class="setting-group">
             <label for="email">Email</label>
-            <div class="email-input-group">
-              <input 
-                type="email" 
-                id="email" 
-                v-model="email" 
-                placeholder="Введите email"
-                :disabled="isEmailVerified"
-              />
-              <button 
-                v-if="!isEmailVerified"
-                @click="sendVerificationCode" 
-                class="verify-button"
-                :disabled="isCodeSent"
-              >
-                {{ isCodeSent ? 'Код отправлен' : 'Подтвердить' }}
-              </button>
+            <div class="email-section">
+              <div class="email-input-group">
+                <input 
+                  type="email" 
+                  id="email" 
+                  v-model="email" 
+                  placeholder="Введите email"
+                  :disabled="isEmailVerified"
+                />
+                <button 
+                  v-if="!isEmailVerified"
+                  @click="sendVerificationCode" 
+                  class="verify-button"
+                  :disabled="isCodeSent"
+                >
+                  {{ isCodeSent ? 'Код отправлен' : 'Подтвердить' }}
+                </button>
+              </div>
+
+              <div v-if="isCodeSent && !isEmailVerified" class="code-input-group">
+                <input 
+                  type="text" 
+                  v-model="verificationCode" 
+                  placeholder="Введите код"
+                  maxlength="6"
+                  class="code-input"
+                />
+                <button 
+                  @click="verifyCode" 
+                  class="verify-button"
+                  :disabled="!verificationCode"
+                >
+                  Проверить
+                </button>
+              </div>
             </div>
-          </div>
-          
-          <div v-if="isCodeSent && !isEmailVerified" class="verification-controls">
-            <div class="code-input-section">
-              <input 
-                type="text" 
-                v-model="verificationCode" 
-                placeholder="Введите код"
-                maxlength="6"
-                class="code-input"
-              />
-              <button 
-                @click="verifyCode" 
-                class="verify-button"
-                :disabled="!verificationCode"
-              >
-                Проверить
-              </button>
-            </div>
-            <button 
-              @click="sendVerificationCode" 
-              class="resend-button"
-              :disabled="timeLeft > 0"
-            >
-              {{ timeLeft > 0 ? `Отправить код повторно (${timeLeft}с)` : 'Отправить код повторно' }}
-            </button>
           </div>
           
           <div v-if="isEmailVerified" class="verified-badge">
@@ -539,14 +532,27 @@
     color: rgba(255, 255, 255, 0.7);
   }
 
+  .email-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
   .email-input-group {
     display: flex;
     gap: 10px;
     width: 100%;
-    margin-bottom: 10px;
   }
 
-  .email-input-group input {
+  .code-input-group {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .code-input {
     flex: 1;
     min-width: 0;
     padding: 0.75rem 1rem;
@@ -555,6 +561,8 @@
     background: rgba(255, 255, 255, 0.1);
     color: white;
     font-size: 1rem;
+    text-align: center;
+    letter-spacing: 2px;
   }
 
   .verify-button {
@@ -573,49 +581,6 @@
   .verify-button:disabled {
     background: #64748b;
     opacity: 0.7;
-    cursor: not-allowed;
-  }
-
-  .verification-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 10px;
-  }
-
-  .code-input-section {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-  }
-
-  .code-input {
-    flex: 1;
-    min-width: 0;
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    font-size: 1rem;
-    text-align: center;
-    letter-spacing: 2px;
-  }
-
-  .resend-button {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    border: none;
-    padding: 8px;
-    border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    width: 100%;
-  }
-
-  .resend-button:disabled {
-    opacity: 0.5;
     cursor: not-allowed;
   }
 
