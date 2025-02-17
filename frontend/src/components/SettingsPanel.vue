@@ -251,35 +251,44 @@
   // Изменяем функцию sendVerificationCode
   async function sendVerificationCode() {
     try {
+      error.value = null;
       const response = await axios.post(`${API_URL}/profile/verify-email`, {
         email: email.value
       });
       
-      if (response.data.success) {
-        serverCode.value = response.data.code;
+      if (response.data.message === 'Код подтверждения отправлен') {
+        showVerificationCode.value = true;
       }
     } catch (error) {
       console.error('Error sending verification code:', error);
+      if (error.response?.data?.error) {
+        error.value = error.response.data.error;
+      } else {
+        error.value = 'Ошибка при отправке кода подтверждения';
+      }
     }
   }
   
   // Обновляем функцию verifyCode
   async function verifyCode() {
     try {
-      if (verificationCode.value === serverCode.value) {
-        const response = await axios.post(`${API_URL}/profile/confirm-email`, {
-          email: email.value
-        });
-        
-        if (response.data.success) {
-          isEmailVerified.value = true;
-          emit('update:email', email.value);
-        }
-      } else {
-        alert('Неверный код подтверждения');
+      const response = await axios.post(`${API_URL}/profile/confirm-email`, {
+        email: email.value,
+        code: verificationCode.value
+      });
+      
+      if (response.data.message === 'Email успешно подтвержден') {
+        isEmailVerified.value = true;
+        emit('update:email', email.value);
+        showVerificationCode.value = false;
       }
     } catch (error) {
       console.error('Error verifying code:', error);
+      if (error.response?.data?.error) {
+        error.value = error.response.data.error;
+      } else {
+        error.value = 'Ошибка при проверке кода';
+      }
     }
   }
   
