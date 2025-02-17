@@ -738,10 +738,10 @@ router.post('/verify-email', async (req, res) => {
 // Маршрут для подтверждения кода
 router.post('/confirm-email', async (req, res) => {
     try {
-        const { email, code } = req.body;
+        const { email, code, guestId } = req.body;
 
-        if (!email || !code) {
-            return res.status(400).json({ error: 'Email и код подтверждения обязательны' });
+        if (!email || !code || !guestId) {
+            return res.status(400).json({ error: 'Email, код подтверждения и guestId обязательны' });
         }
 
         const verification = verificationCodes.get(email);
@@ -767,8 +767,8 @@ router.post('/confirm-email', async (req, res) => {
             return res.status(400).json({ error: 'Неверный код подтверждения' });
         }
 
-        // Обновляем статус подтверждения email в базе данных
-        await run('UPDATE users SET email_verified = 1 WHERE email = ?', [email]);
+        // Обновляем email и статус подтверждения в базе данных
+        await run('UPDATE users SET email = ?, email_verified = 1 WHERE guest_id = ?', [email, guestId]);
         
         // Удаляем использованный код
         verificationCodes.delete(email);

@@ -252,8 +252,16 @@
   async function sendVerificationCode() {
     try {
       error.value = null;
+      const guestId = localStorage.getItem('guestId');
+      
+      if (!guestId) {
+        error.value = 'Ошибка: пользователь не найден';
+        return;
+      }
+
       const response = await axios.post(`${API_URL}/profile/verify-email`, {
-        email: email.value
+        email: email.value,
+        guestId: guestId
       });
       
       if (response.data.message === 'Код подтверждения отправлен') {
@@ -272,9 +280,17 @@
   // Обновляем функцию verifyCode
   async function verifyCode() {
     try {
+      const guestId = localStorage.getItem('guestId');
+      
+      if (!guestId) {
+        error.value = 'Ошибка: пользователь не найден';
+        return;
+      }
+
       const response = await axios.post(`${API_URL}/profile/confirm-email`, {
         email: email.value,
-        code: verificationCode.value
+        code: verificationCode.value,
+        guestId: guestId
       });
       
       if (response.data.message === 'Email успешно подтвержден') {
