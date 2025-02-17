@@ -246,7 +246,6 @@
       
       if (response.data.success) {
         isCodeSent.value = true;
-        serverCode.value = response.data.code; // В реальном приложении код не должен возвращаться с сервера
         startTimer();
       }
     } catch (error) {
@@ -265,10 +264,11 @@
         isEmailVerified.value = true;
         emit('update:email', email.value);
       } else {
-        alert('Неверный код подтверждения');
+        error.value = 'Неверный код подтверждения';
       }
     } catch (error) {
       console.error('Error verifying code:', error);
+      error.value = 'Ошибка при проверке кода';
     }
   }
   
@@ -528,6 +528,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-top: 10px;
   }
 
   .verify-button {
@@ -541,16 +542,27 @@
     transition: background-color 0.2s;
   }
 
+  .verify-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   .code-input-section {
     display: flex;
     gap: 10px;
+    margin-top: 10px;
   }
 
   .code-input {
     flex: 1;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 1rem;
     text-align: center;
     letter-spacing: 5px;
-    font-size: 20px;
   }
 
   .verified-badge {
@@ -561,5 +573,6 @@
     display: flex;
     align-items: center;
     gap: 5px;
+    margin-top: 10px;
   }
   </style> 

@@ -1,40 +1,72 @@
 const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
+
+// Создаем папку для логов, если её нет
+const logsDir = path.join(__dirname, '../../logs');
+if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir);
+}
+
+// Создаем поток для записи логов
+const logStream = fs.createWriteStream(path.join(logsDir, 'email.log'), { flags: 'a' });
+
+// Функция для логирования
+function log(message) {
+    const timestamp = new Date().toISOString();
+    const logMessage = `[${timestamp}] ${message}\n`;
+    console.log(logMessage);
+    logStream.write(logMessage);
+}
 
 // Создаем транспорт для отправки почты
+log('Creating SMTP transport with settings:');
+log(`Host: smtp.mail.ru`);
+log(`Port: 465`);
+log(`Secure: true`);
+log(`User: ${process.env.EMAIL_USER}`);
+
 const transporter = nodemailer.createTransport({
     host: "smtp.mail.ru",
     port: 465,
-    secure: true, // используем SSL
+    secure: true,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD
-    }
+    },
+    debug: true, // Включаем отладку
+    logger: true  // Включаем логирование
 });
 
 // Проверяем соединение при запуске
 transporter.verify(function(error, success) {
     if (error) {
-        console.error('SMTP connection error:', error);
-        console.error('SMTP settings:', {
+        log('SMTP connection error:');
+        log(JSON.stringify(error, null, 2));
+        log('SMTP settings:');
+        log(JSON.stringify({
             host: "smtp.mail.ru",
             port: 465,
             secure: true,
             user: process.env.EMAIL_USER
-        });
+        }, null, 2));
     } else {
-        console.log('SMTP server is ready to take our messages');
+        log('SMTP server is ready to take our messages');
     }
 });
 
 // Генерация случайного 6-значного кода
 function generateVerificationCode() {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    log(`Generated verification code: ${code}`);
+    return code;
 }
 
 // Отправка кода подтверждения
 async function sendVerificationCode(email, code) {
     try {
-        console.log('Preparing to send email to:', email);
+        log(`Preparing to send email to: ${email}`);
+        log(`Using verification code: ${code}`);
 
         const mailOptions = {
             from: `"Razvivashka" <${process.env.EMAIL_USER}>`,
@@ -51,18 +83,23 @@ async function sendVerificationCode(email, code) {
             `
         };
 
+        log('Sending email with options:');
+        log(JSON.stringify(mailOptions, null, 2));
+
         const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent successfully:', info.messageId);
+        log('Email sent successfully:');
+        log(JSON.stringify(info, null, 2));
         return true;
     } catch (error) {
-        console.error('Error sending email:', {
+        log('Error sending email:');
+        log(JSON.stringify({
             name: error.name,
             message: error.message,
             code: error.code,
             command: error.command,
             stack: error.stack
-        });
-        throw error; // Пробрасываем ошибку дальше для обработки в маршруте
+        }, null, 2));
+        throw error;
     }
 }
 
