@@ -9,7 +9,7 @@ const port = process.env.PORT || 3000;
 
 // Проверяем наличие необходимых переменных окружения
 console.log('Checking environment variables:');
-console.log('EMAIL_USER:', process.env.EMAIL_USER ? 'Set' : 'Missing');
+console.log('EMAIL_USER:', process.env.EMAIL_USER);
 console.log('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? 'Set' : 'Missing');
 console.log('PORT:', process.env.PORT || '3000 (default)');
 
