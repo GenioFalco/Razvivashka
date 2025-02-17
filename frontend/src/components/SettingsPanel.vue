@@ -73,48 +73,48 @@
           <!-- Email -->
           <div class="setting-group">
             <label for="email">Email</label>
-            <input 
-              type="email" 
-              id="email" 
-              v-model="email" 
-              placeholder="Введите email"
-              :disabled="isEmailVerified"
-            />
-            <div v-if="!isEmailVerified" class="verification-section">
-              <div v-if="!isCodeSent">
-                <button 
-                  @click="sendVerificationCode" 
-                  class="verify-button"
-                >
-                  Подтвердить
-                </button>
-              </div>
-              
-              <div v-else class="verification-controls">
-                <div class="code-input-section">
-                  <input 
-                    type="text" 
-                    v-model="verificationCode" 
-                    placeholder="Введите код"
-                    maxlength="6"
-                    class="code-input"
-                  />
-                  <button @click="verifyCode" class="verify-button">
-                    Проверить
-                  </button>
-                </div>
-                <button 
-                  @click="sendVerificationCode" 
-                  class="resend-button"
-                  :disabled="timeLeft > 0"
-                >
-                  {{ timeLeft > 0 ? `Отправить код повторно (${timeLeft}с)` : 'Отправить код повторно' }}
-                </button>
-              </div>
+            <div class="email-input-group">
+              <input 
+                type="email" 
+                id="email" 
+                v-model="email" 
+                placeholder="Введите email"
+                :disabled="isEmailVerified"
+              />
+              <button 
+                v-if="!isEmailVerified && !isCodeSent"
+                @click="sendVerificationCode" 
+                class="verify-button"
+              >
+                Подтвердить
+              </button>
             </div>
-            <div v-else class="verified-badge">
-              ✓ Email подтвержден
+          </div>
+          
+          <div v-if="!isEmailVerified && isCodeSent" class="verification-controls">
+            <div class="code-input-section">
+              <input 
+                type="text" 
+                v-model="verificationCode" 
+                placeholder="Введите код"
+                maxlength="6"
+                class="code-input"
+              />
+              <button @click="verifyCode" class="verify-button">
+                Проверить
+              </button>
             </div>
+            <button 
+              @click="sendVerificationCode" 
+              class="resend-button"
+              :disabled="timeLeft > 0"
+            >
+              {{ timeLeft > 0 ? `Отправить код повторно (${timeLeft}с)` : 'Отправить код повторно' }}
+            </button>
+          </div>
+          
+          <div v-if="isEmailVerified" class="verified-badge">
+            ✓ Email подтвержден
           </div>
         </div>
       </div>
@@ -534,27 +534,26 @@
     color: rgba(255, 255, 255, 0.7);
   }
 
-  .verification-section {
+  .email-input-group {
     display: flex;
-    flex-direction: column;
     gap: 10px;
-    margin-top: 10px;
+    width: 100%;
+    margin-bottom: 10px;
   }
 
-  .verify-button {
-    background: #3b82f6;
+  .email-input-group input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
     color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.2s;
+    font-size: 1rem;
   }
 
-  .verify-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  .email-input-group .verify-button {
+    white-space: nowrap;
+    padding: 0.75rem 1.5rem;
   }
 
   .verification-controls {
