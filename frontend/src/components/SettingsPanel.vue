@@ -82,16 +82,17 @@
                 :disabled="isEmailVerified"
               />
               <button 
-                v-if="!isEmailVerified && !isCodeSent"
+                v-if="!isEmailVerified"
                 @click="sendVerificationCode" 
                 class="verify-button"
+                :disabled="isCodeSent"
               >
-                Подтвердить
+                {{ isCodeSent ? 'Код отправлен' : 'Подтвердить' }}
               </button>
             </div>
           </div>
           
-          <div v-if="!isEmailVerified && isCodeSent" class="verification-controls">
+          <div v-if="isCodeSent && !isEmailVerified" class="verification-controls">
             <div class="code-input-section">
               <input 
                 type="text" 
@@ -100,7 +101,11 @@
                 maxlength="6"
                 class="code-input"
               />
-              <button @click="verifyCode" class="verify-button">
+              <button 
+                @click="verifyCode" 
+                class="verify-button"
+                :disabled="!verificationCode"
+              >
                 Проверить
               </button>
             </div>
@@ -543,6 +548,7 @@
 
   .email-input-group input {
     flex: 1;
+    min-width: 0;
     padding: 0.75rem 1rem;
     border-radius: 0.5rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -551,15 +557,49 @@
     font-size: 1rem;
   }
 
-  .email-input-group .verify-button {
-    white-space: nowrap;
+  .verify-button {
     padding: 0.75rem 1.5rem;
+    background: #3b82f6;
+    border: none;
+    border-radius: 0.5rem;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+    min-width: 120px;
+  }
+
+  .verify-button:disabled {
+    background: #64748b;
+    opacity: 0.7;
+    cursor: not-allowed;
   }
 
   .verification-controls {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-top: 10px;
+  }
+
+  .code-input-section {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .code-input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 1rem;
+    text-align: center;
+    letter-spacing: 2px;
   }
 
   .resend-button {
@@ -577,23 +617,6 @@
   .resend-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-  }
-
-  .code-input-section {
-    display: flex;
-    gap: 10px;
-  }
-
-  .code-input {
-    flex: 1;
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    font-size: 1rem;
-    text-align: center;
-    letter-spacing: 5px;
   }
 
   .verified-badge {
