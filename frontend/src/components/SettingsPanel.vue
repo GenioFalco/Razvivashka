@@ -80,16 +80,16 @@
               placeholder="Введите email"
               :disabled="isEmailVerified"
             />
-            <div class="verification-section">
+            <div v-if="!isEmailVerified" class="verification-section">
               <button 
-                v-if="!isEmailVerified"
-                @click="showCodeInput" 
+                @click="sendVerificationCode" 
                 class="verify-button"
+                :disabled="isCodeSent && timeLeft > 0"
               >
-                Подтвердить
+                {{ isCodeSent ? `Отправить код (${timeLeft}с)` : 'Подтвердить' }}
               </button>
               
-              <div v-if="showVerificationCode" class="code-input-section">
+              <div v-if="isCodeSent" class="code-input-section">
                 <input 
                   type="text" 
                   v-model="verificationCode" 
@@ -102,7 +102,7 @@
                 </button>
               </div>
             </div>
-            <div v-if="isEmailVerified" class="verified-badge">
+            <div v-else class="verified-badge">
               ✓ Email подтвержден
             </div>
           </div>
@@ -145,9 +145,6 @@
   const isEmailVerified = ref(props.isEmailVerified);
   
   let timer = null;
-  
-  // Добавляем новую переменную для контроля отображения поля ввода кода
-  const showVerificationCode = ref(false);
   
   // Загрузка доступных персонажей
   const loadCharacters = async () => {
@@ -241,13 +238,6 @@
     }, 1000);
   }
   
-  // Новая функция для показа поля ввода кода
-  async function showCodeInput() {
-    await sendVerificationCode();
-    showVerificationCode.value = true;
-  }
-  
-  // Изменяем функцию sendVerificationCode
   async function sendVerificationCode() {
     try {
       const response = await axios.post(`${API_URL}/profile/verify-email`, {
@@ -255,7 +245,9 @@
       });
       
       if (response.data.success) {
-        serverCode.value = response.data.code;
+        isCodeSent.value = true;
+        serverCode.value = response.data.code; // В реальном приложении код не должен возвращаться с сервера
+        startTimer();
       }
     } catch (error) {
       console.error('Error sending verification code:', error);
