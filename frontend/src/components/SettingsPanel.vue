@@ -80,16 +80,16 @@
               placeholder="Введите email"
               :disabled="isEmailVerified"
             />
-            <div v-if="!isEmailVerified" class="verification-section">
+            <div class="verification-section">
               <button 
-                @click="sendVerificationCode" 
+                v-if="!isEmailVerified"
+                @click="showCodeInput" 
                 class="verify-button"
-                :disabled="isCodeSent && timeLeft > 0"
               >
-                {{ isCodeSent ? `Отправить код (${timeLeft}с)` : 'Подтвердить' }}
+                Подтвердить
               </button>
               
-              <div v-if="isCodeSent" class="code-input-section">
+              <div v-if="showVerificationCode" class="code-input-section">
                 <input 
                   type="text" 
                   v-model="verificationCode" 
@@ -102,7 +102,7 @@
                 </button>
               </div>
             </div>
-            <div v-else class="verified-badge">
+            <div v-if="isEmailVerified" class="verified-badge">
               ✓ Email подтвержден
             </div>
           </div>
@@ -145,6 +145,9 @@
   const isEmailVerified = ref(props.isEmailVerified);
   
   let timer = null;
+  
+  // Добавляем новую переменную для контроля отображения поля ввода кода
+  const showVerificationCode = ref(false);
   
   // Загрузка доступных персонажей
   const loadCharacters = async () => {
@@ -238,6 +241,13 @@
     }, 1000);
   }
   
+  // Новая функция для показа поля ввода кода
+  async function showCodeInput() {
+    await sendVerificationCode();
+    showVerificationCode.value = true;
+  }
+  
+  // Изменяем функцию sendVerificationCode
   async function sendVerificationCode() {
     try {
       const response = await axios.post(`${API_URL}/profile/verify-email`, {
@@ -245,25 +255,25 @@
       });
       
       if (response.data.success) {
-        isCodeSent.value = true;
-        serverCode.value = response.data.code; // В реальном приложении код не должен возвращаться с сервера
-        startTimer();
+        serverCode.value = response.data.code;
       }
     } catch (error) {
       console.error('Error sending verification code:', error);
     }
   }
   
+  // Обновляем функцию verifyCode
   async function verifyCode() {
     try {
-      const response = await axios.post(`${API_URL}/profile/confirm-email`, {
-        email: email.value,
-        code: verificationCode.value
-      });
-      
-      if (response.data.success) {
-        isEmailVerified.value = true;
-        emit('update:email', email.value);
+      if (verificationCode.value === serverCode.value) {
+        const response = await axios.post(`${API_URL}/profile/confirm-email`, {
+          email: email.value
+        });
+        
+        if (response.data.success) {
+          isEmailVerified.value = true;
+          emit('update:email', email.value);
+        }
       } else {
         alert('Неверный код подтверждения');
       }
