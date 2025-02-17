@@ -73,31 +73,32 @@
           <!-- Email -->
           <div class="setting-group">
             <label for="email">Email</label>
-            <input 
-              type="email" 
-              id="email" 
-              v-model="email" 
-              placeholder="Введите email"
-              :disabled="isEmailVerified"
-            />
-            <div class="verification-section">
+            <div class="nickname-input">
+              <input 
+                type="email" 
+                id="email" 
+                v-model="email" 
+                placeholder="Введите email"
+                :disabled="isEmailVerified"
+              />
               <button 
                 v-if="!isEmailVerified"
                 @click="showCodeInput" 
-                class="verify-button"
+                class="save-button"
               >
                 Подтвердить
               </button>
-              
-              <div v-if="showVerificationCode" class="code-input-section">
+            </div>
+            <div class="verification-section">
+              <div v-if="showVerificationCode" class="nickname-input">
                 <input 
                   type="text" 
                   v-model="verificationCode" 
                   placeholder="Введите код"
                   maxlength="6"
-                  class="code-input"
+                  class="nickname-input"
                 />
-                <button @click="verifyCode" class="verify-button">
+                <button @click="verifyCode" class="save-button">
                   Проверить код
                 </button>
               </div>
@@ -538,29 +539,6 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-  }
-
-  .verify-button {
-    background: #3b82f6;
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-
-  .code-input-section {
-    display: flex;
-    gap: 10px;
-  }
-
-  .code-input {
-    flex: 1;
-    text-align: center;
-    letter-spacing: 5px;
-    font-size: 20px;
   }
 
   .verified-badge {
