@@ -283,7 +283,10 @@ function handleUpgrade(data) {
 async function updateNickname(newNickname) {
   try {
     const guestId = localStorage.getItem('guestId');
-    if (!guestId) return;
+    if (!guestId) {
+      console.log('GuestId не найден');
+      return;
+    }
     
     const response = await axios.put(`${API_URL}/profile/${guestId}/username`, {
       username: newNickname
