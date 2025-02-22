@@ -319,10 +319,11 @@ async function loadProfile() {
     loading.value = true;
     error.value = null;
     
-    let guestId = localStorage.getItem('guestId');
+    const guestId = localStorage.getItem('guestId');
     if (!guestId) {
-      guestId = Math.floor(Math.random() * 1000000).toString();
-      localStorage.setItem('guestId', guestId);
+      error.value = 'Ошибка: ID пользователя не найден';
+      loading.value = false;
+      return;
     }
     
     const response = await axios.get(`${API_URL}/profile/${guestId}`);

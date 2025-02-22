@@ -26,7 +26,24 @@ export default {
         WebApp.expand();
         
         // Получаем Telegram ID пользователя
-        userId = WebApp.initDataUnsafe?.user?.id;
+        const initData = WebApp.initData;
+        const initDataUnsafe = WebApp.initDataUnsafe;
+        console.log('Telegram WebApp data:', { initData, initDataUnsafe });
+        
+        if (initDataUnsafe && initDataUnsafe.user && initDataUnsafe.user.id) {
+          userId = initDataUnsafe.user.id.toString();
+          console.log('Got Telegram user ID:', userId);
+        } else {
+          // Пробуем получить ID напрямую
+          const user = WebApp.initDataUnsafe?.user;
+          if (user && user.id) {
+            userId = user.id.toString();
+            console.log('Got Telegram user ID directly:', userId);
+          } else {
+            console.error('Failed to get Telegram user ID');
+            userId = 'browser_' + Math.random().toString(36).substr(2, 9);
+          }
+        }
         
         const BackButton = WebApp.BackButton;
         
@@ -61,6 +78,16 @@ export default {
       } else {
         // Если приложение открыто в браузере, генерируем случайный ID
         userId = 'browser_' + Math.random().toString(36).substr(2, 9);
+        console.log('Generated browser ID:', userId);
+      }
+
+      console.log('Final userId:', userId);
+
+      // Проверяем, не изменился ли существующий ID
+      const existingUserId = localStorage.getItem('userId');
+      if (existingUserId && !existingUserId.startsWith('browser_') && userId.startsWith('browser_')) {
+        console.log('Keeping existing non-browser ID:', existingUserId);
+        userId = existingUserId;
       }
 
       // Сохраняем ID в localStorage
