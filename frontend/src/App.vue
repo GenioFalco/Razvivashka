@@ -16,84 +16,36 @@ export default {
     const historyStack = ref([]);
 
     onMounted(async () => {
-      // Получаем ID пользователя
       let userId;
-      
+
       if (window.Telegram && window.Telegram.WebApp) {
-        // Если приложение открыто в Telegram
+        // Логика для Telegram
         const WebApp = window.Telegram.WebApp;
         WebApp.ready();
         WebApp.expand();
-        
-        // Получаем Telegram ID пользователя
-        const initData = WebApp.initData;
+
         const initDataUnsafe = WebApp.initDataUnsafe;
-        console.log('Telegram WebApp data:', { initData, initDataUnsafe });
-        
         if (initDataUnsafe && initDataUnsafe.user && initDataUnsafe.user.id) {
           userId = initDataUnsafe.user.id.toString();
           console.log('Got Telegram user ID:', userId);
         } else {
-          // Пробуем получить ID напрямую
-          const user = WebApp.initDataUnsafe?.user;
-          if (user && user.id) {
-            userId = user.id.toString();
-            console.log('Got Telegram user ID directly:', userId);
-          } else {
-            console.error('Failed to get Telegram user ID');
-            userId = 'browser_' + Math.random().toString(36).substr(2, 9);
-          }
-        }
-        
-        const BackButton = WebApp.BackButton;
-        
-        router.afterEach((to, from) => {
-          if (from.path && from.path !== to.path) {
-            historyStack.value.push(from.path);
-          }
-
-          if (to.path === "/") {
-            historyStack.value = [];
-            BackButton.hide();
-          } else {
-            BackButton.show();
-          }
-        });
-
-        BackButton.onClick(() => {
-          if (historyStack.value.length > 0) {
-            const previousPath = historyStack.value.pop();
-            router.push(previousPath);
-          } else {
-            router.push("/");
-          }
-        });
-
-        const currentPath = router.currentRoute.value.path;
-        if (currentPath === "/") {
-          BackButton.hide();
-        } else {
-          BackButton.show();
+          console.error('Failed to get Telegram user ID');
+          return; // Прекращаем выполнение, если не удалось получить Telegram ID
         }
       } else {
-        // Если приложение открыто в браузере, генерируем случайный ID
+        // Логика для браузера
         userId = 'browser_' + Math.random().toString(36).substr(2, 9);
         console.log('Generated browser ID:', userId);
       }
 
-      console.log('Final userId:', userId);
-
-      // Проверяем, не изменился ли существующий ID
       const existingUserId = localStorage.getItem('userId');
       if (existingUserId && !existingUserId.startsWith('browser_') && userId.startsWith('browser_')) {
         console.log('Keeping existing non-browser ID:', existingUserId);
         userId = existingUserId;
       } else {
-        // Сохраняем новый ID
         localStorage.setItem('userId', userId);
       }
 
-      // Регистрируем пользователя на сервере
       try {
         await axios.post(`${API_URL}/profile/register`, { userId });
       } catch (error) {
