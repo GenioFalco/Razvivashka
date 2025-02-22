@@ -7,50 +7,70 @@
 <script>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { API_URL } from './config';
+import axios from 'axios';
 
 export default {
   setup() {
     const router = useRouter();
     const historyStack = ref([]);
 
-    onMounted(() => {
-      if (!window.Telegram || !window.Telegram.WebApp) {
-        return;
-      }
+    onMounted(async () => {
+      // Получаем ID пользователя
+      let userId;
+      
+      if (window.Telegram && window.Telegram.WebApp) {
+        // Если приложение открыто в Telegram
+        const WebApp = window.Telegram.WebApp;
+        WebApp.ready();
+        WebApp.expand();
+        
+        // Получаем Telegram ID пользователя
+        userId = WebApp.initDataUnsafe?.user?.id;
+        
+        const BackButton = WebApp.BackButton;
+        
+        router.afterEach((to, from) => {
+          if (from.path && from.path !== to.path) {
+            historyStack.value.push(from.path);
+          }
 
-      const WebApp = window.Telegram.WebApp;
-      WebApp.ready();
-      WebApp.expand();
+          if (to.path === "/") {
+            historyStack.value = [];
+            BackButton.hide();
+          } else {
+            BackButton.show();
+          }
+        });
 
-      const BackButton = WebApp.BackButton;
+        BackButton.onClick(() => {
+          if (historyStack.value.length > 0) {
+            const previousPath = historyStack.value.pop();
+            router.push(previousPath);
+          } else {
+            router.push("/");
+          }
+        });
 
-      router.afterEach((to, from) => {
-        if (from.path && from.path !== to.path) {
-          historyStack.value.push(from.path);
-        }
-
-        if (to.path === "/") {
-          historyStack.value = [];
+        const currentPath = router.currentRoute.value.path;
+        if (currentPath === "/") {
           BackButton.hide();
         } else {
           BackButton.show();
         }
-      });
-
-      BackButton.onClick(() => {
-        if (historyStack.value.length > 0) {
-          const previousPath = historyStack.value.pop();
-          router.push(previousPath);
-        } else {
-          router.push("/");
-        }
-      });
-
-      const currentPath = router.currentRoute.value.path;
-      if (currentPath === "/") {
-        BackButton.hide();
       } else {
-        BackButton.show();
+        // Если приложение открыто в браузере, генерируем случайный ID
+        userId = 'browser_' + Math.random().toString(36).substr(2, 9);
+      }
+
+      // Сохраняем ID в localStorage
+      localStorage.setItem('userId', userId);
+
+      // Регистрируем пользователя на сервере
+      try {
+        await axios.post(`${API_URL}/profile/register`, { userId });
+      } catch (error) {
+        console.error('Error registering user:', error);
       }
     });
   },

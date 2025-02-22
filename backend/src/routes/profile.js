@@ -686,17 +686,51 @@ router.post('/:guestId/character', async (req, res) => {
     }
 });
 
+// Маршрут для регистрации пользователя
+router.post('/register', async (req, res) => {
+    try {
+        const { userId } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ error: 'User ID is required' });
+        }
+
+        // Проверяем, существует ли пользователь
+        const existingUser = await get('SELECT * FROM users WHERE guest_id = ?', [userId]);
+
+        if (!existingUser) {
+            // Создаем нового пользователя
+            await run(
+                'INSERT INTO users (guest_id, username) VALUES (?, ?)',
+                [userId, userId.startsWith('browser_') ? 'Гость' : `User_${userId}`]
+            );
+
+            // Создаем записи в таблице токенов
+            const newUser = await get('SELECT id FROM users WHERE guest_id = ?', [userId]);
+            await run(
+                'INSERT INTO user_tokens (user_id) VALUES (?)',
+                [newUser.id]
+            );
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error in register:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // Маршрут для отправки кода подтверждения
 router.post('/verify-email', async (req, res) => {
     try {
-        const { email } = req.body;
-        
-        if (!email) {
-            return res.status(400).json({ error: 'Email не указан' });
+        const { email, userId } = req.body;
+
+        if (!email || !userId) {
+            return res.status(400).json({ error: 'Email и идентификатор пользователя обязательны' });
         }
 
-        // Проверка формата email
-        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        // Проверяем формат email
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailPattern.test(email)) {
             return res.status(400).json({ error: 'Неверный формат email' });
         }
@@ -738,10 +772,10 @@ router.post('/verify-email', async (req, res) => {
 // Маршрут для подтверждения кода
 router.post('/confirm-email', async (req, res) => {
     try {
-        const { email, code, guestId } = req.body;
+        const { email, code, userId } = req.body;
 
-        if (!email || !code || !guestId) {
-            return res.status(400).json({ error: 'Email, код подтверждения и guestId обязательны' });
+        if (!email || !code || !userId) {
+            return res.status(400).json({ error: 'Email, код подтверждения и идентификатор пользователя обязательны' });
         }
 
         const verification = verificationCodes.get(email);
@@ -768,7 +802,7 @@ router.post('/confirm-email', async (req, res) => {
         }
 
         // Обновляем email и статус подтверждения в базе данных
-        await run('UPDATE users SET email = ?, email_verified = 1 WHERE guest_id = ?', [email, guestId]);
+        await run('UPDATE users SET email = ?, email_verified = 1 WHERE guest_id = ?', [email, userId]);
         
         // Удаляем использованный код
         verificationCodes.delete(email);
