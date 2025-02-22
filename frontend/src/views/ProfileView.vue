@@ -282,13 +282,13 @@ function handleUpgrade(data) {
 // Функция обновления никнейма
 async function updateNickname(newNickname) {
   try {
-    const guestId = localStorage.getItem('guestId');
-    if (!guestId) {
-      console.log('GuestId не найден');
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      console.log('UserId не найден');
       return;
     }
     
-    const response = await axios.put(`${API_URL}/profile/${guestId}/username`, {
+    const response = await axios.put(`${API_URL}/profile/${userId}/username`, {
       username: newNickname
     });
     
@@ -319,14 +319,14 @@ async function loadProfile() {
     loading.value = true;
     error.value = null;
     
-    const guestId = localStorage.getItem('guestId');
-    if (!guestId) {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
       error.value = 'Ошибка: ID пользователя не найден';
       loading.value = false;
       return;
     }
     
-    const response = await axios.get(`${API_URL}/profile/${guestId}`);
+    const response = await axios.get(`${API_URL}/profile/${userId}`);
     const { user, character: characterData } = response.data;
     
     nickname.value = user.username;
@@ -370,13 +370,13 @@ const handleImageError = () => {
 // Обновляем функцию для добавления XP
 async function addTestXP() {
   try {
-    const guestId = localStorage.getItem('guestId');
-    if (!guestId) {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
       error.value = 'Ошибка: ID пользователя не найден';
       return;
     }
 
-    const response = await axios.post(`${API_URL}/profile/${guestId}/xp`, {
+    const response = await axios.post(`${API_URL}/profile/${userId}/xp`, {
       amount: 10
     });
 
@@ -400,8 +400,8 @@ async function addTestXP() {
       isLevelRewardVisible.value = true;
     }
   } catch (err) {
-    console.error('Ошибка при добавлении XP:', err);
-    error.value = 'Ошибка при добавлении XP. Пожалуйста, попробуйте позже.';
+    console.error('Error adding XP:', err);
+    error.value = 'Ошибка при добавлении XP';
   }
 }
 
@@ -409,14 +409,14 @@ async function collectRewards() {
   console.log('Собираем награды:', levelRewards.value);
   
   try {
-    const guestId = localStorage.getItem('guestId');
-    if (!guestId) {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
       error.value = 'Ошибка: ID пользователя не найден';
       return;
     }
 
     // Обновляем данные профиля с сервера
-    const response = await axios.get(`${API_URL}/profile/${guestId}`);
+    const response = await axios.get(`${API_URL}/profile/${userId}`);
     const { user, character: characterData } = response.data;
     
     // Обновляем все значения из ответа сервера
