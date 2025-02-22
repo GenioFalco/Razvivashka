@@ -88,10 +88,10 @@ export default {
       if (existingUserId && !existingUserId.startsWith('browser_') && userId.startsWith('browser_')) {
         console.log('Keeping existing non-browser ID:', existingUserId);
         userId = existingUserId;
+      } else {
+        // Сохраняем новый ID
+        localStorage.setItem('userId', userId);
       }
-
-      // Сохраняем ID в localStorage
-      localStorage.setItem('userId', userId);
 
       // Регистрируем пользователя на сервере
       try {
