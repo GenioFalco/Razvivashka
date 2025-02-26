@@ -33,34 +33,37 @@ export default {
           return;
         }
 
+        // Логика для кнопки "Назад"
         const BackButton = WebApp.BackButton;
-
+        
         router.afterEach((to, from) => {
-        if (from.path && from.path !== to.path) {
-          historyStack.value.push(from.path);
-        }
+          if (from.path && from.path !== to.path) {
+            historyStack.value.push(from.path);
+          }
 
-        if (to.path === "/") {
-          historyStack.value = [];
+          if (to.path === "/") {
+            historyStack.value = [];
+            BackButton.hide();
+          } else {
+            BackButton.show();
+          }
+        });
+
+        BackButton.onClick(() => {
+          if (historyStack.value.length > 0) {
+            const previousPath = historyStack.value.pop();
+            router.push(previousPath);
+          } else {
+            router.push("/");
+          }
+        });
+
+        const currentPath = router.currentRoute.value.path;
+        if (currentPath === "/") {
           BackButton.hide();
         } else {
           BackButton.show();
         }
-      });
-      BackButton.onClick(() => {
-        if (historyStack.value.length > 0) {
-          const previousPath = historyStack.value.pop();
-          router.push(previousPath);
-        } else {
-          router.push("/");
-        }
-      });
-      const currentPath = router.currentRoute.value.path;
-      if (currentPath === "/") {
-        BackButton.hide();
-      } else {
-        BackButton.show();
-      }
       } else {
         // Логика для браузера
         userId = 'browser_' + Math.random().toString(36).substr(2, 9);
