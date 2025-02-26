@@ -33,7 +33,6 @@ export default {
           return;
         }
 
-        // Логика для кнопки "Назад"
         const BackButton = WebApp.BackButton;
         
         router.afterEach((to, from) => {
@@ -63,6 +62,8 @@ export default {
           BackButton.hide();
         } else {
           BackButton.show();
+          console.error('Failed to get Telegram user ID');
+          return; // Прекращаем выполнение, если не удалось получить Telegram ID
         }
       } else {
         // Логика для браузера
