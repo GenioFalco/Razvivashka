@@ -14,55 +14,63 @@ export default {
   setup() {
     const router = useRouter();
     const historyStack = ref([]);
+    let backButton = null;
 
-    onMounted2(() => {
-      if (!window.Telegram || !window.Telegram.WebApp) {
-        return;
-      }
-
+    // Инициализация Telegram WebApp
+    if (window.Telegram && window.Telegram.WebApp) {
       const WebApp = window.Telegram.WebApp;
       WebApp.ready();
       WebApp.expand();
+      backButton = WebApp.BackButton;
 
-      const BackButton = WebApp.BackButton;
-
+      // Настройка обработчика маршрутов
       router.afterEach((to, from) => {
+        console.log('Route changed:', { from: from.path, to: to.path });
+        
         if (from.path && from.path !== to.path) {
           historyStack.value.push(from.path);
+          console.log('History stack updated:', historyStack.value);
         }
 
         if (to.path === "/") {
           historyStack.value = [];
-          BackButton.hide();
+          backButton.hide();
+          console.log('On main page, hiding back button');
         } else {
-          BackButton.show();
+          backButton.show();
+          console.log('Showing back button');
         }
       });
-      BackButton.onClick(() => {
+
+      // Настройка обработчика кнопки "Назад"
+      backButton.onClick(() => {
+        console.log('Back button clicked, current history:', historyStack.value);
         if (historyStack.value.length > 0) {
           const previousPath = historyStack.value.pop();
+          console.log('Navigating to previous path:', previousPath);
           router.push(previousPath);
         } else {
+          console.log('No history, returning to main page');
           router.push("/");
         }
       });
+
+      // Инициализация начального состояния кнопки
       const currentPath = router.currentRoute.value.path;
       if (currentPath === "/") {
-        BackButton.hide();
+        backButton.hide();
+        console.log('Initially hiding back button on main page');
       } else {
-        BackButton.show();
+        backButton.show();
+        console.log('Initially showing back button');
       }
-    })
+    }
 
     onMounted(async () => {
       let userId;
 
       if (window.Telegram && window.Telegram.WebApp) {
-        // Логика для Telegram
         const WebApp = window.Telegram.WebApp;
-        WebApp.ready();
-        WebApp.expand();
-
         const initDataUnsafe = WebApp.initDataUnsafe;
         if (initDataUnsafe && initDataUnsafe.user && initDataUnsafe.user.id) {
           userId = initDataUnsafe.user.id.toString();
@@ -71,40 +79,7 @@ export default {
           console.error('Failed to get Telegram user ID');
           return;
         }
-
-        // Логика для кнопки "Назад"
-        const BackButton = WebApp.BackButton;
-        
-        router.afterEach((to, from) => {
-          if (from.path && from.path !== to.path) {
-            historyStack.value.push(from.path);
-          }
-
-          if (to.path === "/") {
-            historyStack.value = [];
-            BackButton.hide();
-          } else {
-            BackButton.show();
-          }
-        });
-
-        BackButton.onClick(() => {
-          if (historyStack.value.length > 0) {
-            const previousPath = historyStack.value.pop();
-            router.push(previousPath);
-          } else {
-            router.push("/");
-          }
-        });
-
-        const currentPath = router.currentRoute.value.path;
-        if (currentPath === "/") {
-          BackButton.hide();
-        } else {
-          BackButton.show();
-        }
       } else {
-        // Логика для браузера
         userId = 'browser_' + Math.random().toString(36).substr(2, 9);
         console.log('Generated browser ID:', userId);
       }
@@ -123,6 +98,10 @@ export default {
         console.error('Error registering user:', error);
       }
     });
+
+    return {
+      historyStack
+    };
   },
 };
 </script>
