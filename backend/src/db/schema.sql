@@ -111,3 +111,42 @@ INSERT OR IGNORE INTO characters (id, name, image_data, image_type)
 VALUES (1, 'Default Character', 
 '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', 
 'image/png'); 
+
+-- Таблица ежедневных заданий
+CREATE TABLE IF NOT EXISTS daily_tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    coins_reward INTEGER NOT NULL DEFAULT 0,
+    xp_reward INTEGER NOT NULL DEFAULT 0,
+    activity_tokens_reward INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Таблица выполненных заданий пользователями
+CREATE TABLE IF NOT EXISTS completed_daily_tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    task_id INTEGER NOT NULL,
+    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (task_id) REFERENCES daily_tasks(id)
+);
+
+-- Добавляем начальные задания
+INSERT OR IGNORE INTO daily_tasks (title, description, coins_reward, xp_reward, activity_tokens_reward) VALUES
+    ('Выполни 3 скороговорки', 'Перейди в раздел скороговорок и выполни любые 3 упражнения', 50, 30, 1),
+    ('Разгадай 2 ребуса', 'Перейди в раздел ребусов и разгадай любые 2 ребуса', 40, 25, 1),
+    ('Реши 3 загадки', 'Перейди в раздел загадок и реши любые 3 загадки', 45, 28, 1),
+    ('Выполни упражнение на артикуляцию', 'Перейди в раздел артикуляции и выполни одно упражнение', 35, 20, 1),
+    ('Пройди нейроупражнение', 'Перейди в раздел нейроупражнений и выполни одно задание', 55, 35, 1),
+    ('Выполни творческое задание', 'Перейди в раздел творчества и выполни одно задание', 60, 40, 1),
+    ('Повтори 5 скороговорок', 'Перейди в раздел скороговорок и повтори 5 разных упражнений', 65, 45, 1),
+    ('Разгадай 3 ребуса подряд', 'Перейди в раздел ребусов и разгадай 3 ребуса без ошибок', 70, 50, 1),
+    ('Реши 5 загадок', 'Перейди в раздел загадок и реши 5 любых загадок', 75, 55, 1),
+    ('Выполни 2 упражнения на артикуляцию', 'Перейди в раздел артикуляции и выполни 2 разных упражнения', 80, 60, 1),
+    ('Пройди 2 нейроупражнения', 'Перейди в раздел нейроупражнений и выполни 2 разных задания', 85, 65, 1),
+    ('Создай творческую работу', 'Перейди в раздел творчества и создай свою работу', 90, 70, 1),
+    ('Выполни комбо из скороговорок', 'Перейди в раздел скороговорок и выполни 3 сложных упражнения', 95, 75, 1),
+    ('Разгадай сложный ребус', 'Перейди в раздел ребусов и разгадай один сложный ребус', 100, 80, 1),
+    ('Стань мастером загадок', 'Перейди в раздел загадок и реши 4 сложных загадки', 105, 85, 1); 

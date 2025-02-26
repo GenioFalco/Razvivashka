@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const profileRoutes = require('./routes/profile');
 const levelsRoutes = require('./routes/levels');
+const dailyRoutes = require('./routes/daily');
 
 // Создаем папку для логов, если её нет
 const logsDir = path.join(__dirname, '../logs');
@@ -47,6 +48,7 @@ app.use(express.json());
 // Routes
 app.use('/api/profile', profileRoutes);
 app.use('/api/levels', levelsRoutes);
+app.use('/api/daily', dailyRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {

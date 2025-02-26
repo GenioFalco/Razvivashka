@@ -42,40 +42,84 @@
 
 <script>
 import DailyTaskPanel from '@/components/DailyTaskPanel.vue';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import { API_URL } from '@/config';
+
 export default {
   components: { DailyTaskPanel },
-  data() {
-    return {
-      userCoins: 100,
-      dailyTokens: 5,
-      tasks: [
-        { id: 1, title: "Задание 1", description: "Описание задания 1", completed: false },
-        { id: 2, title: "Задание 2", description: "Описание задания 2", completed: false },
-        { id: 3, title: "Задание 3", description: "Описание задания 3", completed: false },
-        { id: 4, title: "Задание 4", description: "Описание задания 4", completed: false },
-        { id: 5, title: "Задание 5", description: "Описание задания 5", completed: false }
-      ],
-      taskPanelVisible: false,
-      currentTask: null
-    };
-  },
-  computed: {
-    completedCount() {
-      return this.tasks.filter(task => task.completed).length;
-    }
-  },
-  methods: {
-    openTaskPanel(task) {
-      this.currentTask = task;
-      this.taskPanelVisible = true;
-    },
-    handleTaskExecution(taskId) {
-      const task = this.tasks.find(task => task.id === taskId);
-      if (task && !task.completed) {
-        task.completed = true;
+  setup() {
+    const userCoins = ref(0);
+    const dailyTokens = ref(0);
+    const tasks = ref([]);
+    const taskPanelVisible = ref(false);
+    const currentTask = ref(null);
+    const loading = ref(true);
+    const error = ref(null);
+
+    const loadTasks = async () => {
+      try {
+        loading.value = true;
+        error.value = null;
+        const userId = localStorage.getItem('userId');
+        
+        // Загружаем задания
+        const tasksResponse = await axios.get(`${API_URL}/daily/${userId}/tasks`);
+        tasks.value = tasksResponse.data;
+
+        // Загружаем данные пользователя
+        const userResponse = await axios.get(`${API_URL}/profile/${userId}`);
+        userCoins.value = userResponse.data.tokens.coins;
+        dailyTokens.value = userResponse.data.tokens.daily;
+      } catch (err) {
+        console.error('Error loading tasks:', err);
+        error.value = 'Ошибка при загрузке заданий';
+      } finally {
+        loading.value = false;
       }
-      this.taskPanelVisible = false;
-    }
+    };
+
+    const openTaskPanel = (task) => {
+      currentTask.value = task;
+      taskPanelVisible.value = true;
+    };
+
+    const handleTaskExecution = async (taskId) => {
+      try {
+        const userId = localStorage.getItem('userId');
+        const response = await axios.post(`${API_URL}/daily/${userId}/complete/${taskId}`);
+        
+        // Обновляем данные пользователя
+        userCoins.value = response.data.user.coins;
+        dailyTokens.value = response.data.user.activity_tokens;
+
+        // Обновляем список заданий
+        await loadTasks();
+
+        // Показываем уведомление о награде
+        alert(`Награда получена!\nМонеты: +${response.data.rewards.coins}\nОпыт: +${response.data.rewards.xp}\nЖетоны: +${response.data.rewards.activity_tokens}`);
+      } catch (err) {
+        console.error('Error completing task:', err);
+        alert('Ошибка при выполнении задания');
+      }
+      taskPanelVisible.value = false;
+    };
+
+    onMounted(() => {
+      loadTasks();
+    });
+
+    return {
+      userCoins,
+      dailyTokens,
+      tasks,
+      taskPanelVisible,
+      currentTask,
+      loading,
+      error,
+      openTaskPanel,
+      handleTaskExecution
+    };
   }
 };
 </script>
