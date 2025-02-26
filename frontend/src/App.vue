@@ -15,6 +15,45 @@ export default {
     const router = useRouter();
     const historyStack = ref([]);
 
+    onMounted2(() => {
+      if (!window.Telegram || !window.Telegram.WebApp) {
+        return;
+      }
+
+      const WebApp = window.Telegram.WebApp;
+      WebApp.ready();
+      WebApp.expand();
+
+      const BackButton = WebApp.BackButton;
+
+      router.afterEach((to, from) => {
+        if (from.path && from.path !== to.path) {
+          historyStack.value.push(from.path);
+        }
+
+        if (to.path === "/") {
+          historyStack.value = [];
+          BackButton.hide();
+        } else {
+          BackButton.show();
+        }
+      });
+      BackButton.onClick(() => {
+        if (historyStack.value.length > 0) {
+          const previousPath = historyStack.value.pop();
+          router.push(previousPath);
+        } else {
+          router.push("/");
+        }
+      });
+      const currentPath = router.currentRoute.value.path;
+      if (currentPath === "/") {
+        BackButton.hide();
+      } else {
+        BackButton.show();
+      }
+    });
+
     onMounted(async () => {
       let userId;
 
