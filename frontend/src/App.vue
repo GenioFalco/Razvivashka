@@ -52,7 +52,7 @@ export default {
       } else {
         BackButton.show();
       }
-    });
+    })
 
     onMounted(async () => {
       let userId;
