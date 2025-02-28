@@ -7,7 +7,7 @@
           <span>{{ userCoins }}</span>
         </div>
         <div class="token-item">
-          <img src="@/assets/activity-token-icon.png" alt="Жетоны" />
+          <img src="@/assets/daily.png" alt="Жетоны" />
           <span>{{ dailyTokens }}</span>
         </div>
       </div>
@@ -35,13 +35,13 @@
               <span>+{{ task.xp_reward }}</span>
             </div>
             <div class="reward" v-if="task.activity_tokens_reward">
-              <img src="@/assets/activity-token-icon.png" alt="Жетоны" />
+              <img src="@/assets/daily.png" alt="Жетоны" />
               <span>+{{ task.activity_tokens_reward }}</span>
             </div>
           </div>
         </div>
         <div class="task-status">
-          <img v-if="task.completed" src="@/assets/checkmark-icon.png" alt="Выполнено" class="status-icon" />
+          <img v-if="task.completed" src="@/assets/galochka.png" alt="Выполнено" class="status-icon" />
           <button v-else class="execute-button" @click.stop="openTaskPanel(task)">Выполнить</button>
         </div>
       </div>
