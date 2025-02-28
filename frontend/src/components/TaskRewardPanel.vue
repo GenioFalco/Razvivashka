@@ -12,7 +12,7 @@
           <span>+{{ rewards.xp }}</span>
         </div>
         <div v-if="rewards.activity_tokens" class="reward-item">
-          <img src="@/assets/activity-token-icon.png" alt="Жетоны" class="reward-icon" />
+          <img src="@/assets/daily.png" alt="Жетоны" class="reward-icon" />
           <span>+{{ rewards.activity_tokens }}</span>
         </div>
       </div>
