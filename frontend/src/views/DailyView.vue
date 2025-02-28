@@ -41,7 +41,7 @@
           </div>
         </div>
         <div class="task-status">
-          <img v-if="task.completed" src="@/assets/galochka.png" alt="Выполнено" class="status-icon" />
+          <img v-if="task.completed" src="@/assets/checkmark-icon.png" alt="Выполнено" class="status-icon" />
           <button v-else class="execute-button" @click.stop="openTaskPanel(task)">Выполнить</button>
         </div>
       </div>
@@ -98,7 +98,7 @@ export default {
         
         // Загружаем задания
         const tasksResponse = await axios.get(`${API_URL}/daily/${userId}/tasks`);
-        tasks.value = tasksResponse.data.map(task => ({ ...task, completed: false }));
+        tasks.value = tasksResponse.data;  // Используем данные как есть, включая статус completed
 
         // Загружаем данные пользователя
         const userResponse = await axios.get(`${API_URL}/profile/${userId}`);
@@ -128,16 +128,13 @@ export default {
         userCoins.value = response.data.user.coins;
         dailyTokens.value = response.data.user.activity_tokens;
 
-        // Отмечаем задание как выполненное
-        const task = tasks.value.find(t => t.id === taskId);
-        if (task) {
-          task.completed = true;
-        }
-
         // Показываем панель с наградами
         currentRewards.value = response.data.rewards;
         taskPanelVisible.value = false;
         showRewards.value = true;
+
+        // Обновляем список заданий
+        await loadTasks();
       } catch (err) {
         console.error('Error completing task:', err);
         alert('Ошибка при выполнении задания');
