@@ -265,7 +265,6 @@ export default {
 
 .execute-button {
   background: #3b82f6;
-  color: white;
   border: none;
   padding: 8px 16px;
   border-radius: 8px;
