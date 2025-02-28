@@ -130,7 +130,6 @@ export default {
 .articulation-container {
   padding: 20px;
   min-height: 100vh;
-  color: white;
   background: linear-gradient(180deg, #4a90e2, #003f7f);
 }
 
@@ -220,7 +219,6 @@ export default {
 
 .execute-button {
   background-color: #3b82f6;
-  color: white;
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
