@@ -41,7 +41,7 @@
           </div>
         </div>
         <div class="task-status">
-          <img v-if="task.completed" src="@/assets/galochka.png.png" alt="Выполнено" class="status-icon" />
+          <img v-if="task.completed" src="@/assets/galochka.png" alt="Выполнено" class="status-icon" />
           <button v-else class="execute-button" @click.stop="openTaskPanel(task)">Выполнить</button>
         </div>
       </div>
