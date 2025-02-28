@@ -172,7 +172,7 @@ export default {
 .daily-view {
   padding: 20px;
   min-height: 100vh;
-  background: var(--tg-theme-bg-color);
+  background: linear-gradient(180deg, #4a90e2, #003f7f);
 }
 
 .header {
