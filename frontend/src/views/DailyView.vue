@@ -103,7 +103,7 @@ export default {
         // Загружаем данные пользователя
         const userResponse = await axios.get(`${API_URL}/profile/${userId}`);
         userCoins.value = userResponse.data.tokens.coins;
-        dailyTokens.value = userResponse.data.tokens.daily;
+        dailyTokens.value = userResponse.data.tokens.activity_tokens;
       } catch (err) {
         console.error('Error loading tasks:', err);
         error.value = 'Ошибка при загрузке заданий';
