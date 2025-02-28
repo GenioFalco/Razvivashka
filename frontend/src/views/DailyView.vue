@@ -253,11 +253,14 @@ export default {
 
 .task-status {
   margin-left: 15px;
+  display: flex;
+  align-items: center;
 }
 
 .status-icon {
   width: 24px;
   height: 24px;
+  filter: brightness(0) invert(1);
 }
 
 .execute-button {
@@ -267,6 +270,11 @@ export default {
   padding: 8px 16px;
   border-radius: 8px;
   cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.execute-button:hover {
+  background: #2563eb;
 }
 
 .loading {

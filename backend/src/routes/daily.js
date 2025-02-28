@@ -26,9 +26,12 @@ router.get('/:userId/tasks', async (req, res) => {
 
         const completedTaskIds = completedTasks.map(task => task.task_id);
         
-        // Фильтруем задания, оставляя только невыполненные
+        // Фильтруем задания и добавляем статус completed
         const availableTasks = allTasks
-            .filter(task => !completedTaskIds.includes(task.id))
+            .map(task => ({
+                ...task,
+                completed: completedTaskIds.includes(task.id)
+            }))
             .slice(0, 5); // Берем только 5 заданий
 
         res.json(availableTasks);
@@ -96,11 +99,8 @@ router.post('/:userId/complete/:taskId', async (req, res) => {
             await run('COMMIT');
 
             // Получаем обновленные данные пользователя
-            const updatedUser = await get(
-                `SELECT u.*, ut.coins, ut.activity_tokens
-                 FROM users u
-                 LEFT JOIN user_tokens ut ON u.id = ut.user_id
-                 WHERE u.id = ?`,
+            const updatedTokens = await get(
+                'SELECT coins, activity_tokens FROM user_tokens WHERE user_id = ?',
                 [user.id]
             );
 
@@ -111,7 +111,10 @@ router.post('/:userId/complete/:taskId', async (req, res) => {
                     xp: task.xp_reward,
                     activity_tokens: task.activity_tokens_reward
                 },
-                user: updatedUser
+                user: {
+                    coins: updatedTokens.coins,
+                    activity_tokens: updatedTokens.activity_tokens
+                }
             });
         } catch (error) {
             await run('ROLLBACK');
