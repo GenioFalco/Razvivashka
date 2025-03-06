@@ -558,8 +558,8 @@ header {
 }
 
 .xp-icon {
-  min-width: clamp(2rem, 6vh, 3rem);
-  min-height: clamp(2rem, 6vh, 3rem);
+  width: 1rem;
+  height: 1rem;
   vertical-align: middle;
   margin-right: 0.25rem;
 }
