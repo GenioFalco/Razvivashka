@@ -121,13 +121,15 @@ export default {
       try {
         const userId = localStorage.getItem('userId');
         const response = await axios.post(`${API_URL}/daily/${userId}/complete/${taskId}`);
+        console.log('Task completion response:', response.data);
         
-        // Обновляем данные пользователя
-        userCoins.value = response.data.user.coins;
-        dailyTokens.value = response.data.user.activity_tokens;
+        // Обновляем данные пользователя (с проверкой структуры)
+        const userData = response.data.user || {};
+        userCoins.value = userData.coins || userCoins.value;
+        dailyTokens.value = userData.activity_tokens || userData.daily || dailyTokens.value;
 
         // Показываем панель с наградами
-        currentRewards.value = response.data.rewards;
+        currentRewards.value = response.data.rewards || {};
         taskPanelVisible.value = false;
         showRewards.value = true;
 
@@ -151,8 +153,17 @@ export default {
       try {
         const userId = localStorage.getItem('userId');
         const userResponse = await axios.get(`${API_URL}/profile/${userId}`);
-        userCoins.value = userResponse.data.tokens.coins;
-        dailyTokens.value = userResponse.data.tokens.activity_tokens;
+        console.log('User data received:', userResponse.data);
+        
+        // Проверяем структуру ответа и достаем нужные данные
+        const userData = userResponse.data.user || userResponse.data;
+        const tokensData = userData.tokens || {};
+        
+        // Устанавливаем монеты
+        userCoins.value = tokensData.coins || 0;
+        
+        // Устанавливаем жетоны (могут быть под разными именами)
+        dailyTokens.value = tokensData.daily || tokensData.activity_tokens || 0;
       } catch (err) {
         console.error('Error loading user data:', err);
       }
