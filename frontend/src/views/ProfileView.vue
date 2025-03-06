@@ -39,7 +39,9 @@
         </div>
         <button class="add-xp-button" @click="addTestXP">+10 XP</button>
       </div>
-      <span class="xp-text">XP {{ currentLevelXP }}/{{ nextLevelXP }}</span>
+      <span class="xp-text">
+        <img src="@/assets/xp-icon.png" alt="XP" class="xp-icon" /> {{ currentLevelXP }}/{{ nextLevelXP }}
+      </span>
     </div>
 
     <!-- Сообщение об ошибке -->
@@ -555,6 +557,12 @@ header {
   height: 1.5rem;
 }
 
+.xp-icon {
+  min-width: clamp(2rem, 6vh, 3rem);
+  min-height: clamp(2rem, 6vh, 3rem);
+  vertical-align: middle;
+  margin-right: 0.25rem;
+}
 /* Стили для индикатора прогресса уровня */
 .level-info {
   text-align: center;

@@ -100,10 +100,8 @@ export default {
         const tasksResponse = await axios.get(`${API_URL}/daily/${userId}/tasks`);
         tasks.value = tasksResponse.data;  // Используем данные как есть, включая статус completed
 
-        // Загружаем данные пользователя
-        const userResponse = await axios.get(`${API_URL}/profile/${userId}`);
-        userCoins.value = userResponse.data.tokens.coins;
-        dailyTokens.value = userResponse.data.tokens.activity_tokens;
+        // Загружаем данные пользователя через отдельную функцию
+        await loadUserData();
       } catch (err) {
         console.error('Error loading tasks:', err);
         error.value = 'Ошибка при загрузке заданий';
@@ -148,6 +146,17 @@ export default {
     onMounted(() => {
       loadTasks();
     });
+
+    const loadUserData = async () => {
+      try {
+        const userId = localStorage.getItem('userId');
+        const userResponse = await axios.get(`${API_URL}/profile/${userId}`);
+        userCoins.value = userResponse.data.tokens.coins;
+        dailyTokens.value = userResponse.data.tokens.activity_tokens;
+      } catch (err) {
+        console.error('Error loading user data:', err);
+      }
+    };
 
     return {
       userCoins,
